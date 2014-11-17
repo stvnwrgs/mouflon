@@ -1,8 +1,7 @@
 {
   "name": "mouflon",
-  "version": "0.1.1",
+  "version": "0.1.5",
   "description": "Mouflon deployment",
-  "main": "deploy.js",
   "author": "Alexander Thiel",
   "license": "proprietary",
   "devDependencies": {
@@ -10,8 +9,9 @@
     "grunt-contrib-watch": "0.6.x",
     "grunt-typescript": "0.4.x"
   },
+  "main": "./dist/classes/MouflonFactory",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublish": "grunt"
   },
   "repository": {
     "type": "git",

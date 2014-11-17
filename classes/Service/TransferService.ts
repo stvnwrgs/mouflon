@@ -17,9 +17,9 @@ class TransferService extends AbstractService {
         this.timestamp = timestamp;
     }
 
-    transfer( configPresent: boolean ) {
+    transfer( configPresent: boolean ): Q.IPromise<any> {
 
-        var serializedPromise = [
+        var serializedPromise: Q.IPromise<any> = [
             ()=> {return this.purgeOldReleases();},
             ()=> {return this.makeReleasesDir();},
             ()=> {return this.uploadRelease();},
@@ -27,9 +27,12 @@ class TransferService extends AbstractService {
             ()=> {return this.linkRelease();}
         ].reduce(Q.when, Q(null));
 
-        serializedPromise.fail(function ( error ) {
-            console.log(error);
-        });
+        serializedPromise.then(
+            ()=> {},
+            ( error ) => {
+                console.log(error);
+            }
+        );
 
         return serializedPromise;
     }
@@ -84,7 +87,7 @@ class TransferService extends AbstractService {
         ].reduce(Q.when, Q(null));
     }
 
-    private makeReleasesDir(): Q.Promise<boolean> {
+    private makeReleasesDir(): Q.IPromise<boolean> {
         var dir = this.getBaseDir(),
             releasesDir = dir + '/releases',
             currentReleaseDir = this.getCurrentDir(),
@@ -129,7 +132,7 @@ class TransferService extends AbstractService {
         return tasks.reduce(Q.when, Q(null));
     }
 
-    private linkRelease(): Q.Promise<boolean> {
+    private linkRelease(): Q.IPromise<any> {
 
         return [()=> {
             return this.services.ssh.exec('if [ -h "' + this.getBaseDir() + '/current" ]; then unlink ' + this.getBaseDir() + '/current; fi');

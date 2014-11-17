@@ -4,7 +4,7 @@ import Q = require('q');
 
 interface Task {
 
-    execute():Q.IPromise<{}>;
+    execute():Q.Promise<{}>;
     modify( modBody: string ): void;
 }
 
