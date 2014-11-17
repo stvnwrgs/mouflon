@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.1.9
+# Mouflon v0.1.11
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -16,7 +16,7 @@ Mouflon is still in an early stage of development and has only been tested on li
 npm install mouflon --save-dev
 ```
 
-Once Mouflon has been installed you need to create a main deployment file that you will later execute in order to build.
+Once Mouflon has been installed you need to create a main deployment file that you will later execute in order to deploy your application.
 You can name it anything you like and the most simple version looks like this.
 
 ```js
@@ -57,12 +57,12 @@ factory.setPaths({
     temp:     './temp',
     cache:    './cache'
 });
-´´´
+```
 
 
 ## Release History
 
- * 2014-11-17   v0.1.9   Initial public release on npm after mouflon was used internally for some time
+ * 2014-11-17   v0.1.11   Initial public release on npm after mouflon was used internally for some time
 
 ---
 
