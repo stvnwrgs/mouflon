@@ -1,20 +1,20 @@
 class Paths {
-    private temp: string;
-    private settings: string;
-    private config: string;
-    private cache: string;
+    private temp:string;
+    private settings:string;
+    private config:string;
+    private cache:string;
 
-    constructor( temp: string, settings: string, config: string, cache: string ) {
+    constructor(temp:string, settings:string, config:string, cache:string) {
         this.temp = temp;
         this.settings = settings;
         this.config = config;
         this.cache = cache;
     }
 
-    updatePaths( newPaths: {[key:string]:string} ): void {
+    updatePaths(newPaths:{[key:string]:string}):void {
         var pathKeys = ['config', 'settings', 'temp', 'cache'];
 
-        pathKeys.forEach(( pathKey: string )=> {
+        pathKeys.forEach((pathKey:string)=> {
             var path = newPaths[pathKey];
 
             if (newPaths[pathKey]) {
@@ -26,19 +26,26 @@ class Paths {
         });
     }
 
-    getTemp(): string {
+    getReadable():string {
+        return 'temp: ' + this.temp + "\n" +
+            'settings: ' + this.settings + "\n" +
+            'config: ' + this.config + "\n" +
+            'cache: ' + this.cache + "\n"
+    }
+
+    getTemp():string {
         return this.temp + '/';
     }
 
-    getSettings(): string {
+    getSettings():string {
         return this.settings + '/';
     }
 
-    getConfig(): string {
+    getConfig():string {
         return this.config + '/';
     }
 
-    getCache(): string {
+    getCache():string {
         return this.cache + '/';
     }
 }
