@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.1.13
+# Mouflon v0.1.14
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -63,6 +63,7 @@ factory.setPaths({
 ## Release History
 
  * 2014-11-17   v0.1.11   Initial public release on npm after mouflon was used internally for some time
+ * 2014-12-01   v0.1.13   Added remote errors in stderr to the output
 
 ---
 
