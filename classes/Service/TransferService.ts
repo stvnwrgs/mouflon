@@ -87,9 +87,12 @@ class TransferService extends AbstractService {
                     dirNames.forEach((dirName) => {
                         tasks.push(() => { return client.exec(sprintf('rm -rf %s/releases/%s', baseDir, dirName)); });
                     });
-                    tasks.reduce(Q.when, Q(null)).then(() => {
-                        deferred.resolve(true);
-                    })
+                    tasks.reduce(Q.when, Q(null)).then(
+                        () => {
+                            deferred.resolve(true);
+                        }, (error) => {
+                            deferred.reject(error);
+                        })
                 }).fail((error)=> {
                     deferred.reject(error);
                 });

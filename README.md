@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.2.1
+# Mouflon v0.2.2
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 

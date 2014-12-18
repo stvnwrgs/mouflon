@@ -23,10 +23,14 @@ class BowerTask extends AbstractTask implements Task {
                 this.services.log.startSection(sprintf('Installing %d bower dependencies', Object.keys(info.dependencies).length));
             }
 
-            this.services.shell.exec('bower install').then(()=> {
-                this.services.log.closeSection('Bower packages installed');
-                deferred.resolve(true);
-            });
+            this.services.shell.exec('bower install').then(
+                ()=> {
+                    this.services.log.closeSection('Bower packages installed');
+                    deferred.resolve(true);
+                },
+                (error) => {
+                    deferred.reject(error);
+                });
         });
 
         return deferred.promise;
