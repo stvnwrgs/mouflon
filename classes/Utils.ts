@@ -6,7 +6,7 @@ class Utils {
         console.log(
             color.yellow(
                 "\n+----------------------------------------------+" +
-                "\n|     ") + color.xterm(200).bold('An error occurred - Can\'t continue') + color.yellow("      |" +
+                "\n|      ") + color.xterm(200).bold('An error occurred - Can\'t continue') + color.yellow("      |" +
             "\n+----------------------------------------------+") +
             "\n" +
             "\nError:\n" +

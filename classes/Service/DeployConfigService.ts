@@ -15,6 +15,7 @@ class DeployConfigService extends AbstractService {
     stageName: string;
     paths: Paths;
     timestamp: string;
+    verbose: boolean;
 
     constructor( projectName: string, stageName: string, paths: Paths, timestamp: string, serviceContainer: ServiceContainer ) {
         super(serviceContainer);

@@ -33,6 +33,8 @@ mouflon.deploy();
 
 ```
 
+Add --v to the command for verbose mode
+
 ## Directory structure
 ...
 
@@ -64,7 +66,7 @@ factory.setPaths({
 
  * 2014-11-17   v0.1.11   Initial public release on npm after mouflon was used internally for some time
  * 2014-12-01   v0.1.13   Added remote errors in stderr to the output
- * 2014-12-18   v0.2.1    Massive refactoring, shell now in silent mode, improved and indented log output
+ * 2014-12-18   v0.2.1    Massive refactoring, shell now in silent mode, improved and indented log output, added --v flag
 
 ---
 

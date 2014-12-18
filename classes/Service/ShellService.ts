@@ -21,7 +21,7 @@ class ShellService extends AbstractService {
         }
         this.services.log.debug('Executing: ' + command);
         result = Shell.exec(command, {
-            silent: true
+            silent: !this.services.config.verbose
         });
         if (result.code === 0) {
             deferred.resolve(result.output);

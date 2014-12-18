@@ -21,28 +21,29 @@ class TransferService extends AbstractService {
 
     transfer(configPresent: boolean): Q.IPromise<any> {
 
-        var serializedPromise: Q.IPromise<any> = [
-            () => {
-                this.services.log.startSection('Transferring project to remote');
-            },
-            () => { return this.purgeOldReleases(); },
+        var successPromise;
+
+        this.services.log.startSection('Transferring project to remote');
+
+        successPromise = [
             () => { return this.makeReleasesDir(); },
+            () => { return this.purgeOldReleases(); },
             () => { return this.uploadRelease(); },
             () => { return this.unpackRelease(configPresent); },
             () => { return this.linkRelease(); },
-            () => {
-                this.services.log.closeSection('Project transferred and published');
-            }
+
         ].reduce(Q.when, Q(null));
 
-        serializedPromise.then(
-            () => {},
+        successPromise.then(
+            () => {
+                this.services.log.closeSection('Project transferred and published');
+            },
             (error) => {
                 this.services.log.error(error);
             }
         );
 
-        return serializedPromise;
+        return successPromise;
     }
 
     getBaseDir() {
@@ -59,54 +60,72 @@ class TransferService extends AbstractService {
         return this.currentDir;
     }
 
-    private purgeOldReleases() {
+    private purgeOldReleases(): Q.Promise<{}> {
         var client = this.services.ssh,
             baseDir = this.getBaseDir(),
-            filesToKeep = this.services.config.globalConfig.releases.keep;
+            filesToKeep = this.services.config.globalConfig.releases.keep,
+            tasks,
+            successPromise;
 
         this.services.log.startSection('Purging outdated releases');
 
-        [
+        tasks = [
             () => { return client.exec(sprintf('rm -rf %s/releases/*.tar.gz', baseDir)); },
-            () => { return client.exec(sprintf('if [ ! -d "%1$s/releases" ]; then mkdir %1$s/releases; fi', baseDir)) },
             () => {
                 var deferred = Q.defer();
-                client.exec(sprintf('ls %s/releases', baseDir)).then((procResult: any) => {
+                client.exec(sprintf('ls %s/releases', baseDir)).then((procResult: SshResult) => {
                     var i: any,
                         tasks: any[] = [],
                         dirNames = procResult.stdout.replace(/\n/g, ' ').trim().split(' ');
-
                     dirNames.sort();
                     for (i = filesToKeep; i > 0; i--) {
                         dirNames.pop();
                     }
 
-                    this.services.log.debug(sprintf('Purging %s outdated release%s', dirNames.length, dirNames.length === 1 ? '' : 's'));
+                    this.services.log.debug(sprintf('Purging %d outdated release%s', dirNames.length, dirNames.length === 1 ? '' : 's'));
+
                     dirNames.forEach((dirName) => {
                         tasks.push(() => { return client.exec(sprintf('rm -rf %s/releases/%s', baseDir, dirName)); });
                     });
                     tasks.reduce(Q.when, Q(null)).then(() => {
-                        this.services.log.closeSection('Outdated releases successfully purged.');
                         deferred.resolve(true);
                     })
                 }).fail((error)=> {
                     deferred.reject(error);
                 });
+                return deferred.promise;
             }
-        ].reduce(Q.when, Q(null));
+        ];
+
+        successPromise = tasks.reduce(Q.when, Q(null));
+
+        successPromise.then(() => {
+            this.services.log.closeSection('Outdated releases successfully purged.');
+        });
+
+        return successPromise;
     }
 
     private makeReleasesDir(): Q.IPromise<boolean> {
         var dir = this.getBaseDir(),
             releasesDir = dir + '/releases',
             currentReleaseDir = this.getCurrentDir(),
-            client = this.services.ssh;
+            client = this.services.ssh,
+            successPromise;
 
-        return [
-            () => { return client.exec(sprintf('if [ ! -d "%1$s" ]; then mkdir %1$s; fi', releasesDir));},
+        this.services.log.startSection('Making sure releases directory exists');
+
+        successPromise = [
+            () => { return client.exec(sprintf('if [ ! -d "%1$s" ]; then mkdir %1$s; fi', releasesDir)); },
             () => { return client.exec(sprintf('if [ -d "%1$s" ]; then rm -rf %1$s; fi', currentReleaseDir)); },
             () => { return client.exec(sprintf('mkdir %s', currentReleaseDir)); }
         ].reduce(Q.when, Q(null));
+
+        successPromise.then(() => {
+            this.services.log.closeSection('releases directory exists');
+        });
+
+        return successPromise;
     }
 
     private uploadRelease() {
@@ -121,7 +140,10 @@ class TransferService extends AbstractService {
             baseDir = this.getBaseDir(),
             dir = this.getCurrentDir(),
             timestamp = this.timestamp,
-            tasks;
+            tasks,
+            successPromise;
+
+        this.services.log.startSection('Unpacking release');
 
         tasks = [
             () => { return client.exec(sprintf('tar -zxf %1$s.tar.gz -C %1$s', dir)); },
@@ -136,7 +158,13 @@ class TransferService extends AbstractService {
                 return client.exec(sprintf('ln -s ../../config %s/config', dir));
             });
         }
-        return tasks.reduce(Q.when, Q(null));
+        successPromise = tasks.reduce(Q.when, Q(null));
+
+        successPromise.then(()=> {
+            this.services.log.closeSection('Release unpacked');
+        });
+
+        return successPromise;
     }
 
     private linkRelease(): Q.IPromise<any> {

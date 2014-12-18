@@ -18,12 +18,13 @@ class SshService extends AbstractService {
     private sshClient: any = null;
     private scpClient: any = null;
 
-    exec(command: string) {
-        var deferred = Q.defer();
+    exec(command: string): Q.Promise<SshResult> {
+        var deferred = Q.defer<SshResult>(),
+            client = this.getSshClient();
 
-        this.services.log.logCommand('SSH command: ' + command);
+        this.services.log.logCommand('SSH cmd: ' + command);
 
-        this.getSshClient().command(command, (procResult: SshResult) => {
+        client.command(command, (procResult: SshResult) => {
             var resultString = sprintf('Response (code %s): "%s", err: "%s"', procResult.exitCode, procResult.stdout, procResult.stderr);
             if (procResult.exitCode !== 0) {
                 deferred.reject(resultString);
@@ -39,13 +40,13 @@ class SshService extends AbstractService {
     upload(filename: string, remoteFilename: string) {
         var deferred = Q.defer();
 
-        this.services.log.logCommand(sprintf('Uploading "%s" to "%s"', filename, remoteFilename));
+        this.services.log.startSection(sprintf('Uploading "%s" to "%s"', filename, remoteFilename));
         this.getScpClient().upload(filename, remoteFilename, (procResult: any) => {
             if (procResult.exitCode !== 0) {
                 deferred.reject(procResult.stderr);
                 return;
             }
-            this.services.log.logResult('Upload complete');
+            this.services.log.closeSection('Upload complete');
             deferred.resolve(procResult);
         });
         return deferred.promise;

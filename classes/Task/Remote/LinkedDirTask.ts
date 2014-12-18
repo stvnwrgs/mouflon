@@ -13,9 +13,11 @@ class LinkedDirTask extends AbstractTask implements Task {
     execute() {
         var baseDir = this.services.transfer.getBaseDir(),
             currentDir = this.services.transfer.getCurrentDir(),
-            commands = [];
+            commands;
 
-        this.services.log.startSection('Making sure linked directories exist on remote');
+        commands = [
+            () => { this.services.log.startSection('Making sure linked directories exist on remote'); }
+        ];
 
         this.getPrefs()['directories'].forEach((directory: string)=> {
             commands.push(() => {
@@ -30,7 +32,6 @@ class LinkedDirTask extends AbstractTask implements Task {
         });
 
         commands.push(() => { this.services.log.closeSection('All linked directories exist.'); });
-        console.log(commands.length);
         return commands.reduce(Q.when, Q(null));
     }
 }

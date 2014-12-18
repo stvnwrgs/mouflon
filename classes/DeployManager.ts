@@ -36,28 +36,36 @@ class DeployManager {
         this.services = serviceContainer;
     }
 
-    deploy() {
-        return [
-            this.loadGlobalConfig.bind(this),
-            this.loadProjectConfig.bind(this),
-            this.cache.bind(this),
-            this.checkout.bind(this),
-            this.build.bind(this),
-            this.transfer.bind(this),
-            this.finalize.bind(this),
-            this.cleanUp.bind(this)
-        ].reduce(Q.when, Q(null));
+    deploy(): Q.IPromise<boolean> {
+
+        var config = this.services.config,
+            configPresent = fs.existsSync(config.paths.getConfig() + config.projectName + '/' + config.stageName);
+
+        var tasks = [
+            () => { return this.loadGlobalSettings() },
+            () => { return this.loadProjectSettings(); },
+            () => { return this.cache(); },
+            () => { return this.checkout(); },
+            () => { return this.build(); },
+            () => { return this.prepareTransfer(configPresent); },
+            () => { return this.services.transfer.transfer(configPresent); },
+            () => { return this.finalize(); },
+            () => { return this.cleanUp(); }
+        ];
+
+        return tasks.reduce(Q.when, Q(null));
     }
 
     private build(): Q.Promise<boolean> {
 
-        var tasks = [];
+        var tasks = [],
+            taskPromise: Q.Promise<boolean>;
 
+        this.services.log.startSection('Executing local build tasks');
         if (!this.services.config.projectConfig.localTasks) {
-            this.services.log.startSection('No local tasks found ("localTasks")');
+            this.services.log.closeSection('No local tasks found ("localTasks")');
 
         } else {
-            this.services.log.startSection('Executing local build tasks');
             this.services.config.projectConfig.localTasks.forEach((task: TaskDefinition) => {
                 var Class;
                 switch (task.task) {
@@ -88,13 +96,16 @@ class DeployManager {
                 tasks.push(instance.execute.bind(instance));
             });
         }
-        return tasks.reduce(Q.when, Q(null));
+        taskPromise = tasks.reduce(Q.when, Q(null));
+        taskPromise.then(() => { this.services.log.closeSection('Local build tasks executed'); });
+        return taskPromise;
 
     }
 
     private finalize(): Q.Promise<boolean> {
         var tasks = [],
-            remoteTasks = this.services.config.projectConfig.remoteTasks;
+            remoteTasks = this.services.config.projectConfig.remoteTasks,
+            successPromise;
 
         this.services.log.startSection('Executing remote tasks to finalize project');
 
@@ -116,51 +127,63 @@ class DeployManager {
                 var instance = new Class(this.services, task.prefs ? task.prefs : {});
                 tasks.push(instance.execute.bind(instance));
             });
-            tasks.push(()=> { this.services.log.closeSection(sprintf('Successfully executed %d remote tasks.', remoteTasks.length)); });
-        } else {
-            tasks.push(()=> { this.services.log.closeSection('There were no remote tasks to execute'); });
         }
 
-        return tasks.reduce(Q.when, Q(null));
+        successPromise = tasks.reduce(Q.when, Q(null));
+
+        successPromise.then(()=> {
+            if (remoteTasks && remoteTasks.length > 0) {
+                this.services.log.closeSection(sprintf('Successfully executed %d remote tasks.', remoteTasks.length));
+            } else {
+                this.services.log.closeSection('There were no remote tasks to execute');
+            }
+        });
+        return successPromise;
     }
 
-    private transfer() {
+    private prepareTransfer(configPresent: boolean) {
         var config = this.services.config,
             configDir = config.paths.getTemp() + config.projectName + '/_config-' + this.services.config.timestamp,
-            queue = [],
-            configPresent = fs.existsSync(config.paths.getConfig() + config.projectName + '/' + config.stageName);
+            tasks = [],
+            successPromise;
+
+
+        this.services.log.startSection('Preparing transfer');
 
         if (configPresent) {
-            queue.push(()=> {
-                this.services.log.startSection('Adding config files to package');
-                return this.services.shell.exec('mkdir ' + configDir, true);
-            });
-            queue.push(()=> {
-                return this.services.shell.exec('cp -r ' + config.paths.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {
-                    this.services.log.closeSection('Config files added to package');
-                });
-            });
+            tasks = [
+                ()=> {
+                    this.services.log.startSection('Adding config files to package');
+                    return this.services.shell.exec('mkdir ' + configDir, true);
+                },
+                ()=> {
+                    return this.services.shell.exec('cp -r ' + config.paths.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {
+                        this.services.log.closeSection('Config files added to package');
+                    });
+                }
+            ];
         }
 
-        queue.push(() => {
+        tasks.push(() => {
             this.services.log.startSection('Packing files');
-            this.services.shell.exec('tar -zcf ../' + config.projectName + '.tar.gz .').then(() => {
+            return this.services.shell.exec('tar -zcf ../' + config.projectName + '.tar.gz .').then(() => {
                 this.services.log.closeSection('Files packed');
             });
         });
-
-        queue.push(()=> {
-            this.services.transfer.transfer(configPresent);
+        successPromise = tasks.reduce(Q.when, Q(null));
+        successPromise.then(() => {
+            this.services.log.closeSection('Transfer prepared')
         });
-
-        return queue.reduce(Q.when, Q(null));
+        return successPromise;
     }
 
 
-    private loadGlobalConfig(): Q.Promise<boolean> {
+    private loadGlobalSettings(): Q.Promise<boolean> {
         var config = this.services.config,
             settingsDir = config.paths.getSettings(),
             d = Q.defer<boolean>();
+
+        this.services.log.startSection('Loading global settings');
 
         fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer: Buffer) => {
             if (err) {
@@ -186,9 +209,9 @@ class DeployManager {
                 );
 
                 if (err) {
-                    this.services.log.closeSection('Global config loaded');
+                    this.services.log.closeSection('Global settings loaded');
                 } else {
-                    this.services.log.closeSection('Global config (and local overrides) loaded');
+                    this.services.log.closeSection('Global settings (and local overrides) loaded');
                 }
                 d.resolve(true);
             });
@@ -196,12 +219,12 @@ class DeployManager {
         return d.promise;
     }
 
-    private loadProjectConfig(): Q.Promise<boolean> {
+    private loadProjectSettings(): Q.Promise<boolean> {
         var config = this.services.config,
             settingsDir = config.paths.getSettings(),
             d = Q.defer<boolean>();
 
-        this.services.log.startSection('Loading project specific config from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
+        this.services.log.startSection('Loading project specific settings from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
 
         fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data: Buffer) => {
             if (err) {
@@ -209,7 +232,7 @@ class DeployManager {
                 return;
             }
             config.projectConfig = jsyaml.load('' + data);
-            this.services.log.closeSection('Project specific config loaded');
+            this.services.log.closeSection('Project specific settings loaded');
 
             if (config.projectConfig.stages[config.stageName] === undefined) {
                 d.reject('No stage named "' + config.stageName + '" found in ' + settingsDir + '/projects/' + config.projectName + '/settings.yml');
