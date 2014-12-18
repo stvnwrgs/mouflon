@@ -4,21 +4,46 @@ import AbstractTask = require('./../AbstractTask');
 import Task = require('./../Task');
 
 import Q = require('q');
+import fs = require('fs');
+var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class NodeTask extends AbstractTask implements Task {
 
     execute() {
 
-        var d = Q.defer();
+        var deferred = Q.defer(),
+            filename = sprintf('%s/%s/package.json', this.services.config.paths.getTemp(), this.services.config.projectName);
 
-        this.services.log.logStart('Installing node packages');
-        this.services.shell.exec('npm install').then(() => {
-            this.services.log.logEnd('Node packages installed');
-            d.resolve(true);
-        }).fail(function ( error ) {
-            d.reject(error);
+        fs.readFile(filename, (err, settingsBuffer: Buffer) => {
+
+            var info = JSON.parse(settingsBuffer + ''),
+                dependencyCount,
+                devDependencyCount;
+
+            if (err) {
+                this.services.log.warn('package.json not present');
+
+            } else {
+                dependencyCount = info.dependencies ? Object.keys(info.dependencies).length : 0;
+                devDependencyCount = info.devDependencies ? Object.keys(info.devDependencies).length : 0;
+
+                if (dependencyCount > 0 || devDependencyCount > 0) {
+                    this.services.log.startSection(sprintf('Installing %d npm dependencies (%d dev)', dependencyCount, devDependencyCount));
+                } else {
+                    this.services.log.startSection('Installing npm dependencies');
+                    this.services.log.warn('package.json contains neither dependencies nor devDependencies');
+                }
+            }
+
+            this.services.shell.exec('npm install').then(() => {
+                this.services.log.closeSection('Node packages installed');
+                deferred.resolve(true);
+            }).fail(function (error) {
+                deferred.reject(error);
+            });
+
         });
-        return d.promise;
+        return deferred.promise;
 
     }
 }

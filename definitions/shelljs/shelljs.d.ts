@@ -455,8 +455,9 @@ declare module "shelljs"
      * Executes the given command synchronously.
      * @param  {string}          command The commadn to execute.
      * @return {ExecReturnValue}         Returns an object containing the return code and output as string.
+     * @param options
      */
-    export function exec(command: string): ExecReturnValue;
+    export function exec(command: string, options?: any): ExecReturnValue;
 
     interface ExecReturnValue
     {

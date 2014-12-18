@@ -12,7 +12,7 @@ class RemoteBashTask extends AbstractTask implements Task {
     execute() {
         var d = Q.defer();
 
-        this.services.log.logStart('Executing remote bash commands');
+        this.services.log.startSection('Executing remote bash commands');
 
         fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_remote.sh', ( err, buffer: Buffer )=> {
             var content: string,
@@ -34,7 +34,7 @@ class RemoteBashTask extends AbstractTask implements Task {
             });
 
             commands.reduce(Q.when, Q(null)).then(() => {
-                this.services.log.logEnd('All bash commands executed');
+                this.services.log.closeSection('All bash commands executed');
                 d.resolve(true);
             }).fail(( error )=> {
                 d.reject(error);

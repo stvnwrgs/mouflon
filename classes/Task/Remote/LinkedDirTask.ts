@@ -6,6 +6,7 @@ import Task = require('./../Task');
 
 import Q = require('q');
 import fs = require('fs');
+var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class LinkedDirTask extends AbstractTask implements Task {
 
@@ -14,20 +15,22 @@ class LinkedDirTask extends AbstractTask implements Task {
             currentDir = this.services.transfer.getCurrentDir(),
             commands = [];
 
-        this.services.log.logStart('Making sure linked directories exist on remote');
+        this.services.log.startSection('Making sure linked directories exist on remote');
 
-        this.getPrefs()['directories'].forEach(( directory: string )=> {
-            commands.push(()=> {
-                return this.services.ssh.exec('if [ ! -d "' + baseDir + '/' + directory + '" ]; then mkdir -m=0777 ' + baseDir + '/' + directory + '; fi');
+        this.getPrefs()['directories'].forEach((directory: string)=> {
+            commands.push(() => {
+                return this.services.ssh.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory));
             });
-            commands.push(()=> {
-                return this.services.ssh.exec('ln -fs ../../' + directory + ' ' + currentDir + '/' + directory);
+            commands.push(() => {
+                return this.services.ssh.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir));
             });
-            commands.push(()=> {
-                return this.services.ssh.exec('chmod 0777 ' + currentDir + '/' + directory);
+            commands.push(() => {
+                return this.services.ssh.exec(sprintf('chmod 0777 %s/%s', currentDir, directory));
             });
         });
 
+        commands.push(() => { this.services.log.closeSection('All linked directories exist.'); });
+        console.log(commands.length);
         return commands.reduce(Q.when, Q(null));
     }
 }

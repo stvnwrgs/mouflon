@@ -12,7 +12,7 @@ class LocalBashTask extends AbstractTask implements Task {
     execute() {
         var d = Q.defer();
 
-        this.services.log.logStart('Executing local bash commands');
+        this.services.log.startSection('Executing local bash commands');
         var commands = [];
         fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_local.sh', ( err, buffer: Buffer )=> {
             var content: string;
@@ -31,7 +31,7 @@ class LocalBashTask extends AbstractTask implements Task {
             });
 
             commands.reduce(Q.when, Q(null)).then(() => {
-                this.services.log.logEnd('All local bash commands executed');
+                this.services.log.closeSection('All local bash commands executed');
                 d.resolve(true);
             });
         });

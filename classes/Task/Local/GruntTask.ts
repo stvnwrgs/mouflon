@@ -11,9 +11,9 @@ class NodeTask extends AbstractTask implements Task {
         var d = Q.defer(),
             task = this.getPrefs()['task'] ? ' ' + this.getPrefs()['task'] : '';
 
-        this.services.log.logStart('Executing grunt task' + task);
+        this.services.log.startSection('Executing grunt task' + task);
         this.services.shell.exec('grunt' + task).then(()=> {
-            this.services.log.logEnd('Grunt task' + task + ' executed');
+            this.services.log.closeSection('Grunt task' + task + ' executed');
             d.resolve(true);
         });
         return d.promise;

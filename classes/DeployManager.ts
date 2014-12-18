@@ -25,13 +25,14 @@ import TaskDefinition = require('./Task/TaskDefinition');
 import RemoteBashTask = require('./Task/Remote/RemoteBashTask');
 import LinkedDirTask = require('./Task/Remote/LinkedDirTask');
 
-var merge:any = require('merge-recursive');
+var merge: any = require('merge-recursive');
+var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class DeployManager {
 
-    private services:ServiceContainer;
+    private services: ServiceContainer;
 
-    constructor(serviceContainer:ServiceContainer) {
+    constructor(serviceContainer: ServiceContainer) {
         this.services = serviceContainer;
     }
 
@@ -48,16 +49,16 @@ class DeployManager {
         ].reduce(Q.when, Q(null));
     }
 
-    private build():Q.Promise<boolean> {
+    private build(): Q.Promise<boolean> {
 
         var tasks = [];
 
         if (!this.services.config.projectConfig.localTasks) {
-            this.services.log.logStart('No local tasks found ("localTasks")');
+            this.services.log.startSection('No local tasks found ("localTasks")');
 
         } else {
-            this.services.log.logStart('Executing local build tasks');
-            this.services.config.projectConfig.localTasks.forEach((task:TaskDefinition) => {
+            this.services.log.startSection('Executing local build tasks');
+            this.services.config.projectConfig.localTasks.forEach((task: TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'composer':
@@ -91,13 +92,14 @@ class DeployManager {
 
     }
 
-    private finalize():Q.Promise<boolean> {
-        var tasks = [];
+    private finalize(): Q.Promise<boolean> {
+        var tasks = [],
+            remoteTasks = this.services.config.projectConfig.remoteTasks;
 
-        this.services.log.logStart('Executing remote tasks to finalize project');
+        this.services.log.startSection('Executing remote tasks to finalize project');
 
-        if (this.services.config.projectConfig.remoteTasks && this.services.config.projectConfig.remoteTasks.length > 0) {
-            this.services.config.projectConfig.remoteTasks.forEach((task:TaskDefinition) => {
+        if (remoteTasks && remoteTasks.length > 0) {
+            remoteTasks.forEach((task: TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'bash':
@@ -114,7 +116,11 @@ class DeployManager {
                 var instance = new Class(this.services, task.prefs ? task.prefs : {});
                 tasks.push(instance.execute.bind(instance));
             });
+            tasks.push(()=> { this.services.log.closeSection(sprintf('Successfully executed %d remote tasks.', remoteTasks.length)); });
+        } else {
+            tasks.push(()=> { this.services.log.closeSection('There were no remote tasks to execute'); });
         }
+
         return tasks.reduce(Q.when, Q(null));
     }
 
@@ -126,48 +132,43 @@ class DeployManager {
 
         if (configPresent) {
             queue.push(()=> {
-                this.services.log.logStart('Adding config files to package');
+                this.services.log.startSection('Adding config files to package');
                 return this.services.shell.exec('mkdir ' + configDir, true);
             });
             queue.push(()=> {
                 return this.services.shell.exec('cp -r ' + config.paths.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {
-                    this.services.log.logEnd('Config files added to package');
+                    this.services.log.closeSection('Config files added to package');
                 });
             });
         }
 
-        this.services.log.logStart('Packing files');
-
         queue.push(() => {
+            this.services.log.startSection('Packing files');
             this.services.shell.exec('tar -zcf ../' + config.projectName + '.tar.gz .').then(() => {
-                this.services.log.logStart('Files packed');
+                this.services.log.closeSection('Files packed');
             });
         });
 
         queue.push(()=> {
-            this.services.log.logStart('Transferring files');
-
-            return this.services.transfer.transfer(configPresent).then(() => {
-                this.services.log.logEnd('Files transferred');
-            });
+            this.services.transfer.transfer(configPresent);
         });
 
         return queue.reduce(Q.when, Q(null));
     }
 
 
-    private loadGlobalConfig():Q.Promise<boolean> {
+    private loadGlobalConfig(): Q.Promise<boolean> {
         var config = this.services.config,
             settingsDir = config.paths.getSettings(),
             d = Q.defer<boolean>();
 
-        fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer:Buffer) => {
+        fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer: Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
             }
 
-            fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer:Buffer) => {
+            fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer: Buffer) => {
                 var overrideSettings;
                 if (err) {
                     this.services.log.warn('Could not load ' + settingsDir + 'local_override.yml');
@@ -185,9 +186,9 @@ class DeployManager {
                 );
 
                 if (err) {
-                    this.services.log.logEnd('Global config loaded');
+                    this.services.log.closeSection('Global config loaded');
                 } else {
-                    this.services.log.logEnd('Global config (and local overrides) loaded');
+                    this.services.log.closeSection('Global config (and local overrides) loaded');
                 }
                 d.resolve(true);
             });
@@ -195,20 +196,20 @@ class DeployManager {
         return d.promise;
     }
 
-    private loadProjectConfig():Q.Promise<boolean> {
+    private loadProjectConfig(): Q.Promise<boolean> {
         var config = this.services.config,
             settingsDir = config.paths.getSettings(),
             d = Q.defer<boolean>();
 
-        this.services.log.logStart('Loading project specific config from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
+        this.services.log.startSection('Loading project specific config from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
 
-        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data:Buffer) => {
+        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data: Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
             }
             config.projectConfig = jsyaml.load('' + data);
-            this.services.log.logEnd('Project specific config loaded');
+            this.services.log.closeSection('Project specific config loaded');
 
             if (config.projectConfig.stages[config.stageName] === undefined) {
                 d.reject('No stage named "' + config.stageName + '" found in ' + settingsDir + '/projects/' + config.projectName + '/settings.yml');
@@ -219,13 +220,13 @@ class DeployManager {
         return d.promise;
     }
 
-    private cache():Q.Promise<boolean> {
+    private cache(): Q.Promise<boolean> {
         var config = this.services.config,
             stageConfig = config.getStageConfig(),
             cacheDir = config.paths.getCache(),
             promise;
 
-        this.services.log.logStart('Updating local cache');
+        this.services.log.startSection('Updating local cache');
         if (!fs.existsSync(cacheDir)) {
             fs.mkdirSync(cacheDir);
         }
@@ -235,12 +236,12 @@ class DeployManager {
             promise = this.services.shell.exec('git clone -b ' + stageConfig.branch + ' ' + config.projectConfig.repo.url + ' ' + cacheDir + config.projectName);
         }
         promise.then(()=> {
-            this.services.log.logEnd('Local cache updated');
+            this.services.log.closeSection('Local cache updated');
         });
         return promise;
     }
 
-    private checkout():Q.Promise<boolean> {
+    private checkout(): Q.Promise<boolean> {
 
         var config = this.services.config,
             stageConfig = config.getStageConfig(),
@@ -249,7 +250,7 @@ class DeployManager {
             git = new Git.Git(tempDir + config.projectName),
             cacheParam = ' --reference ' + config.paths.getCache() + config.projectName;
 
-        this.services.log.logStart('Checking out branch "' + stageConfig.branch + '" from "' + config.projectConfig.repo.url + '"...');
+        this.services.log.startSection('Checking out branch "' + stageConfig.branch + '" from "' + config.projectConfig.repo.url + '"...');
 
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir);
@@ -263,22 +264,22 @@ class DeployManager {
         fs.mkdirSync(tempDir + config.projectName);
 
         var command = 'clone -b ' + stageConfig.branch + cacheParam + ' ' + config.projectConfig.repo.url + ' ' + tempDir + config.projectName;
-        console.log(command);
+        this.services.log.debug(command);
         git.git(command, (err, result) => {
             if (err) {
                 deferred.reject(err);
                 return;
             }
-            this.services.log.logEnd('Branch successfully checked out');
+            this.services.log.closeSection('Branch successfully checked out');
             deferred.resolve(true);
         });
         return deferred.promise;
     }
 
     private cleanUp() {
-        this.services.log.logStart('Purging temporary files');
+        this.services.log.startSection('Purging temporary files');
         return this.services.shell.exec('cd ' + this.services.config.paths.getTemp() + '; rm -rf ..?* .[!.]* *', true).then(() => {
-            this.services.log.logEnd('Temporary files purged.');
+            this.services.log.closeSection('Temporary files purged.');
         });
     }
 }

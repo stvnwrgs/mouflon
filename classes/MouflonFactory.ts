@@ -39,8 +39,6 @@ class MouflonFactory {
             './config',
             './cache'
         );
-        console.log('Set paths: ' + this.paths.getReadable());
-
     }
 
     setPaths( paths: {[key:string]:string} ): void {

@@ -4,18 +4,32 @@ import AbstractTask = require('./../AbstractTask');
 import Task = require('./../Task');
 
 import Q = require('q');
+import fs = require('fs');
+var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class BowerTask extends AbstractTask implements Task {
 
-    execute() {
-        var d = Q.defer();
+    execute(): Q.Promise<boolean> {
+        var deferred = Q.defer<boolean>(),
+            filename = sprintf('%s/%s/bower.json', this.services.config.paths.getTemp(), this.services.config.projectName);
 
-        this.services.log.logStart('Installing bower dependencies');
-        this.services.shell.exec('bower install').then(()=> {
-            this.services.log.logEnd('Bower packages installed');
-            d.resolve(true);
+        fs.readFile(filename, (err, settingsBuffer: Buffer) => {
+
+            var info = JSON.parse(settingsBuffer + '');
+
+            if (err) {
+                this.services.log.warn('bower.json not present');
+            } else {
+                this.services.log.startSection(sprintf('Installing %d bower dependencies', Object.keys(info.dependencies).length));
+            }
+
+            this.services.shell.exec('bower install').then(()=> {
+                this.services.log.closeSection('Bower packages installed');
+                deferred.resolve(true);
+            });
         });
-        return d.promise;
+
+        return deferred.promise;
     }
 }
 
