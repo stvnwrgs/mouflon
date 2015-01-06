@@ -4,19 +4,19 @@ import AbstractTask = require('./../AbstractTask');
 import Task = require('./../Task');
 import Q = require('q');
 
-class GruntTask extends AbstractTask implements Task {
+class GulpTask extends AbstractTask implements Task {
 
     execute() {
 
         var deferred = Q.defer(),
             task = this.getPrefs()['task'] ? ' ' + this.getPrefs()['task'] : '';
 
-        this.services.log.startSection('Executing grunt task' + task);
-        this.services.shell.exec('grunt' + task).then(()=> {
-                this.services.log.closeSection('Grunt task' + task + ' executed');
+        this.services.log.startSection('Executing gulp task' + task);
+        this.services.shell.exec('gulp' + task).then(()=> {
+                this.services.log.closeSection('Gulp task' + task + ' executed');
                 deferred.resolve(true);
             },
-            (error) => {
+            ( error ) => {
                 deferred.reject(error);
             });
         return deferred.promise;
@@ -24,4 +24,4 @@ class GruntTask extends AbstractTask implements Task {
     }
 }
 
-export = GruntTask;
+export = GulpTask;
