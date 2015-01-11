@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.2.3
+# Mouflon v0.2.4
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -67,8 +67,9 @@ factory.setPaths({
  * 2014-11-17   v0.1.11   Initial public release on npm after mouflon was used internally for some time
  * 2014-12-01   v0.1.13   Added remote errors in stderr to the output
  * 2014-12-18   v0.2.1    Massive refactoring, shell now in silent mode, improved and indented log output, added --v flag
- * 2014-12-20   v0.2.1    Minor bugfixes 
+ * 2014-12-20   v0.2.1    Minor bug fixes
  * 2015-01-04   v0.2.3    Added gulp task
+ * 2015-01-11   v0.2.4    Added tsd (typescript definitions from Definitely Typed) task
 
 ---
 

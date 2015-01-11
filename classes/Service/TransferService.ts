@@ -30,6 +30,7 @@ class TransferService extends AbstractService {
             () => { return this.purgeOldReleases(); },
             () => { return this.uploadRelease(); },
             () => { return this.unpackRelease(configPresent); },
+            () => { return this.setPermission(); },
             () => { return this.linkRelease(); },
 
         ].reduce(Q.when, Q(null));
@@ -168,6 +169,10 @@ class TransferService extends AbstractService {
         });
 
         return successPromise;
+    }
+
+    private setPermission() : Q.IPromise<any> {
+        return this.services.ssh.exec(sprintf('chmod 0755 %s', this.getCurrentDir()));
     }
 
     private linkRelease(): Q.IPromise<any> {

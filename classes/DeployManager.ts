@@ -20,6 +20,7 @@ import BowerTask = require('./Task/Local/BowerTask');
 import ComposerTask = require('./Task/Local/ComposerTask');
 import GruntTask = require('./Task/Local/GruntTask');
 import GulpTask = require('./Task/Local/GulpTask');
+import TsdTask = require('./Task/Local/TsdTask');
 import NodeTask = require('./Task/Local/NodeTask');
 import TaskDefinition = require('./Task/TaskDefinition');
 
@@ -84,6 +85,9 @@ class DeployManager {
                         break;
                     case 'gulp':
                         Class = GulpTask;
+                        break;
+                    case 'tsd':
+                        Class = TsdTask;
                         break;
                     case 'bash':
                         Class = LocalBashTask;
