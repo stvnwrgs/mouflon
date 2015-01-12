@@ -4,6 +4,7 @@ import TaskDefinition = require('../Task/TaskDefinition');
 interface ProjectConfig {
     repo: {
         url: string;
+        submodules: boolean;
     };
     localTasks: TaskDefinition[];
     remoteTasks: TaskDefinition[];

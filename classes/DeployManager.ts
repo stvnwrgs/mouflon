@@ -34,7 +34,7 @@ class DeployManager {
 
     private services: ServiceContainer;
 
-    constructor( serviceContainer: ServiceContainer ) {
+    constructor(serviceContainer: ServiceContainer) {
         this.services = serviceContainer;
     }
 
@@ -68,7 +68,7 @@ class DeployManager {
             this.services.log.closeSection('No local tasks found ("localTasks")');
 
         } else {
-            this.services.config.projectConfig.localTasks.forEach(( task: TaskDefinition ) => {
+            this.services.config.projectConfig.localTasks.forEach((task: TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'composer':
@@ -118,7 +118,7 @@ class DeployManager {
         this.services.log.startSection('Executing remote tasks to finalize project');
 
         if (remoteTasks && remoteTasks.length > 0) {
-            remoteTasks.forEach(( task: TaskDefinition ) => {
+            remoteTasks.forEach((task: TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'bash':
@@ -149,7 +149,7 @@ class DeployManager {
         return successPromise;
     }
 
-    private prepareTransfer( configPresent: boolean ) {
+    private prepareTransfer(configPresent: boolean) {
         var config = this.services.config,
             configDir = config.paths.getTemp() + config.projectName + '/_config-' + this.services.config.timestamp,
             tasks = [],
@@ -193,13 +193,13 @@ class DeployManager {
 
         this.services.log.startSection('Loading global settings');
 
-        fs.readFile(settingsDir + 'settings.yml', ( err, settingsBuffer: Buffer ) => {
+        fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer: Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
             }
 
-            fs.readFile(settingsDir + 'local_override.yml', ( err, overrideBuffer: Buffer ) => {
+            fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer: Buffer) => {
                 var overrideSettings;
                 if (err) {
                     this.services.log.warn('Could not load ' + settingsDir + 'local_override.yml');
@@ -234,7 +234,7 @@ class DeployManager {
 
         this.services.log.startSection('Loading project specific settings from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
 
-        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', ( err, data: Buffer ) => {
+        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data: Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
@@ -264,7 +264,12 @@ class DeployManager {
         if (fs.existsSync(cacheDir + config.projectName)) {
             promise = this.services.shell.exec('cd ' + cacheDir + config.projectName + '; git fetch && git checkout ' + stageConfig.branch + ' && git pull', true)
         } else {
-            promise = this.services.shell.exec('git clone -b ' + stageConfig.branch + ' ' + config.projectConfig.repo.url + ' ' + cacheDir + config.projectName);
+            promise = this.services.shell.exec(sprintf('git clone %s -b %s %s %s',
+                config.projectConfig.repo.submodules ? '--recursive' : '',
+                stageConfig.branch,
+                config.projectConfig.repo.url,
+                cacheDir + config.projectName
+            ));
         }
         promise.then(()=> {
             this.services.log.closeSection('Local cache updated');
@@ -281,7 +286,7 @@ class DeployManager {
             git = new Git.Git(tempDir + config.projectName),
             cacheParam = ' --reference ' + config.paths.getCache() + config.projectName;
 
-        this.services.log.startSection('Checking out branch "' + stageConfig.branch + '" from "' + config.projectConfig.repo.url + '"...');
+        this.services.log.startSection(sprintf('Checking out branch "%s" from "%s"...', stageConfig.branch, config.projectConfig.repo.url));
 
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir);
@@ -294,9 +299,17 @@ class DeployManager {
         }
         fs.mkdirSync(tempDir + config.projectName);
 
-        var command = 'clone -b ' + stageConfig.branch + cacheParam + ' ' + config.projectConfig.repo.url + ' ' + tempDir + config.projectName;
+        //var command = 'clone -b ' + stageConfig.branch + cacheParam + ' ' + config.projectConfig.repo.url + ' ' + tempDir + config.projectName;
+
+        var command = sprintf('clone %s -b %s %s %s %s',
+            config.projectConfig.repo.submodules ? '--recursive' : '',
+            stageConfig.branch,
+            cacheParam,
+            config.projectConfig.repo.url,
+            tempDir + config.projectName
+        );
         this.services.log.debug(command);
-        git.git(command, ( err, result ) => {
+        git.git(command, (err, result) => {
             if (err) {
                 deferred.reject(err);
                 return;
