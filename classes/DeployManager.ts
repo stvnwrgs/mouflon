@@ -150,11 +150,10 @@ class DeployManager {
     }
 
     private prepareTransfer(configPresent: boolean) {
-        var config = this.services.config,
-            configDir = config.paths.getTemp() + config.projectName + '/_config-' + this.services.config.timestamp,
-            tasks = [],
-            successPromise;
-
+        var config = this.services.config;
+        var configDir = config.paths.getTemp() + config.projectName + (config.projectConfig.distDirectory !== '' ? '/' + config.projectConfig.distDirectory : '') + '/_config-' + this.services.config.timestamp;
+        var tasks = [];
+        var successPromise;
 
         this.services.log.startSection('Preparing transfer');
 
@@ -174,7 +173,11 @@ class DeployManager {
 
         tasks.push(() => {
             this.services.log.startSection('Packing files');
-            return this.services.shell.exec('tar -zcf ../' + config.projectName + '.tar.gz .').then(() => {
+            var changeDirArg = '';
+            if (config.projectConfig.distDirectory !== '') {
+                changeDirArg = '-C ' + config.projectConfig.distDirectory + ' ';
+            }
+            return this.services.shell.exec('tar ' + changeDirArg + '-zcf ../' + config.projectName + '.tar.gz .').then(() => {
                 this.services.log.closeSection('Files packed');
             });
         });
@@ -247,6 +250,21 @@ class DeployManager {
             } else {
                 d.resolve(true);
             }
+
+            // check distDirectory setting
+            if (typeof config.projectConfig.distDirectory === 'undefined') {
+                config.projectConfig.distDirectory = ''; // default
+            }
+            var distDirectoryTmp = config.projectConfig.distDirectory.trim();
+            // ensure leading slash is removed
+            if (distDirectoryTmp.substr(0, 1) === '/') {
+                distDirectoryTmp = distDirectoryTmp.substr(1);
+            }
+            // ensure trailing slash is removed
+            if (distDirectoryTmp.substr(distDirectoryTmp.length - 1) === '/') {
+                distDirectoryTmp = distDirectoryTmp.substr(0, distDirectoryTmp.length - 1);
+            }
+            config.projectConfig.distDirectory = distDirectoryTmp;
         });
         return d.promise;
     }
