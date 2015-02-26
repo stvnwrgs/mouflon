@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.2.5
+# Mouflon v0.2.6
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -71,6 +71,7 @@ factory.setPaths({
  * 2015-01-04   v0.2.3    Added gulp task
  * 2015-01-11   v0.2.4    Added tsd (typescript definitions from Definitely Typed) task
  * 2015-01-12   v0.2.5    Added support for git submodules
+ * 2015-02-26   v0.2.6    Added configuration feature for dist subdirectories being deployed (instead of the whole project root)
 
 ---
 
