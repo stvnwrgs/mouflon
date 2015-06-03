@@ -22,6 +22,7 @@ import GruntTask = require('./Task/Local/GruntTask');
 import GulpTask = require('./Task/Local/GulpTask');
 import TsdTask = require('./Task/Local/TsdTask');
 import NodeTask = require('./Task/Local/NodeTask');
+import MavenTask = require('./Task/Local/MavenTask');
 import TaskDefinition = require('./Task/TaskDefinition');
 
 import RemoteBashTask = require('./Task/Remote/RemoteBashTask');
@@ -91,6 +92,9 @@ class DeployManager {
                         break;
                     case 'bash':
                         Class = LocalBashTask;
+                        break;
+                    case 'maven':
+                        Class = MavenTask;
                         break;
                     default:
                         this.services.log.warn('Ignoring unknown task type "' + task.task + '".');
