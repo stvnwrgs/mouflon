@@ -1,6 +1,6 @@
 {
   "name":            "mouflon",
-  "version":         "0.2.6",
+  "version":         "0.2.7",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
   "author":          "Alexander Thiel",
   "license":         "proprietary",
