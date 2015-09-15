@@ -27,6 +27,7 @@ import TaskDefinition = require('./Task/TaskDefinition');
 
 import RemoteBashTask = require('./Task/Remote/RemoteBashTask');
 import LinkedDirTask = require('./Task/Remote/LinkedDirTask');
+import LinkedFileTask = require('./Task/Remote/LinkedFileTask');
 
 var merge: any = require('merge-recursive');
 var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
@@ -130,6 +131,9 @@ class DeployManager {
                         break;
                     case 'linkedDirs':
                         Class = LinkedDirTask;
+                        break;
+                    case 'linkedFiles':
+                        Class = LinkedFileTask;
                         break;
                     default:
                         this.services.log.warn('Ignoring unknown task type "' + task.task + '".');

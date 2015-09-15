@@ -1,8 +1,8 @@
 {
   "name":            "mouflon",
-  "version":         "0.2.7",
+  "version":         "0.2.8",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
-  "author":          "Alexander Thiel",
+  "author":          "SNM Style Net Media GmbH",
   "license":         "proprietary",
   "devDependencies": {
     "grunt":               "0.4.x",
@@ -15,7 +15,7 @@
   },
   "repository":      {
     "type": "git",
-    "url":  "git@github.com:reasn/mouflon.git"
+    "url":  "git@github.com:stylelab-io/mouflon.git"
   },
   "dependencies":    {
     "async":           "0.9.x",
