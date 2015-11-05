@@ -10,7 +10,7 @@ var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class LinkedDirTask extends AbstractTask implements Task {
 
-    execute() {
+    execute(): Q.Promise<any> {
         var baseDir = this.services.transfer.getBaseDir(),
             currentDir = this.services.transfer.getCurrentDir(),
             commands;
