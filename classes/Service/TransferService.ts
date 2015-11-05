@@ -26,7 +26,7 @@ class TransferService extends AbstractService {
         this.services.log.startSection('Transferring project to remote');
 
         successPromise = [
-            () => { return this.makeReleasesDir(); },
+            () => { return this.makeReleasesDir(sshClient); },
             () => { return this.purgeOldReleases(sshClient); },
             () => { return this.uploadRelease(sshClient); },
             () => { return this.unpackRelease(sshClient, configPresent); },
@@ -109,19 +109,18 @@ class TransferService extends AbstractService {
         return successPromise;
     }
 
-    private makeReleasesDir(): Q.IPromise<boolean> {
+    private makeReleasesDir(sshClient: SshClient): Q.IPromise<boolean> {
         var dir = this.getBaseDir(),
             releasesDir = dir + '/releases',
             currentReleaseDir = this.getCurrentDir(),
-            client = this.sshClient,
             successPromise;
 
         this.services.log.startSection('Making sure releases directory exists');
 
         successPromise = [
-            () => { return client.exec(sprintf('if [ ! -d "%1$s" ]; then mkdir %1$s; fi', releasesDir)); },
-            () => { return client.exec(sprintf('if [ -d "%1$s" ]; then rm -rf %1$s; fi', currentReleaseDir)); },
-            () => { return client.exec(sprintf('mkdir %s', currentReleaseDir)); }
+            () => { return sshClient.exec(sprintf('if [ ! -d "%1$s" ]; then mkdir %1$s; fi', releasesDir)); },
+            () => { return sshClient.exec(sprintf('if [ -d "%1$s" ]; then rm -rf %1$s; fi', currentReleaseDir)); },
+            () => { return sshClient.exec(sprintf('mkdir %s', currentReleaseDir)); }
         ].reduce(Q.when, Q(null));
 
         successPromise.then(() => {
