@@ -19,15 +19,20 @@ class LinkedDirTask extends AbstractTask implements Task {
             () => { this.services.log.startSection('Making sure linked directories exist on remote'); }
         ];
 
-        this.getPrefs()['directories'].forEach((directory: string)=> {
-            commands.push(() => {
-                return this.services.ssh.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory));
-            });
-            commands.push(() => {
-                return this.services.ssh.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir));
-            });
-            commands.push(() => {
-                return this.services.ssh.exec(sprintf('chmod 0777 %s/%s', currentDir, directory));
+        this.services.config.getHostsForStage().forEach(host => {
+
+            let client = this.services.sshClientFactory.getClient(host);
+
+            this.getPrefs()['directories'].forEach((directory: string)=> {
+                commands.push(() => {
+                    return client.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory));
+                });
+                commands.push(() => {
+                    return client.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir));
+                });
+                commands.push(() => {
+                    return client.exec(sprintf('chmod 0777 %s/%s', currentDir, directory));
+                });
             });
         });
 

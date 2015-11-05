@@ -8,10 +8,10 @@ import ServiceContainer = require('./Service/ServiceContainer');
 import DeployConfigService = require('./Service/DeployConfigService');
 import LogService = require('./Service/LogService');
 import ShellService = require('./Service/ShellService');
-import SshService = require('./Service/SshService');
 import TransferService = require('./Service/TransferService');
 
 import minimist = require('minimist');
+import SshClientFactory = require("./Service/SshClientFactory");
 var dateFormat: any = require('dateformat');
 
 
@@ -79,7 +79,7 @@ class MouflonFactory {
 
         serviceContainer.log = new LogService(serviceContainer);
         serviceContainer.shell = new ShellService(serviceContainer);
-        serviceContainer.ssh = new SshService(serviceContainer);
+        serviceContainer.sshClientFactory = new SshClientFactory(serviceContainer);
         serviceContainer.transfer = new TransferService(timestamp, serviceContainer);
 
 

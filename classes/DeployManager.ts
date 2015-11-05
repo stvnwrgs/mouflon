@@ -51,18 +51,23 @@ class DeployManager {
             () => { return this.cache(); },
             () => { return this.checkout(); },
             () => { return this.build(); },
-            () => { return this.prepareTransfer(configPresent); },
-            () => { return this.services.transfer.transfer(configPresent); },
-            () => { return this.finalize(); },
-            () => { return this.cleanUp(); }
+            () => { return this.prepareTransfer(configPresent); }
         ];
 
+        this.services.config.getHostsForStage().forEach(host => {
+
+            let client = this.services.sshClientFactory.getClient(host);
+
+            tasks.push(() => { return this.services.transfer.transfer(client, configPresent); });
+            tasks.push(() => { return this.finalize(); });
+            tasks.push(() => { return this.cleanUp(); });
+        });
         return tasks.reduce(Q.when, Q(null));
     }
 
     private build(): Q.Promise<boolean> {
 
-        var tasks = [],
+        var tasks:Q.Promise<any>[] = [],
             taskPromise: Q.Promise<boolean>;
 
         this.services.log.startSection('Executing local build tasks');

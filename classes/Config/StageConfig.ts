@@ -1,7 +1,8 @@
 interface StageConfig {
     branch: string;
     server: {
-        host: string;
+        host?: string;
+        hosts?: string[];
         user: string;
         dir:string;
         port:number;

@@ -5,21 +5,21 @@ import Q = require('q');
 import ServiceContainer=require('./ServiceContainer');
 import AbstractService=require('./AbstractService');
 import SshResult = require('./SshResult');
+import SshClient = require("./SshClient");
 
 var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class TransferService extends AbstractService {
 
-    private timestamp: string;
     private baseDir: string = null;
     private currentDir: string = null;
 
-    constructor(timestamp: string, serviceContainer: ServiceContainer) {
+    constructor(private timestamp: string,
+                serviceContainer: ServiceContainer) {
         super(serviceContainer);
-        this.timestamp = timestamp;
     }
 
-    transfer(configPresent: boolean): Q.IPromise<any> {
+    transfer(sshClient: SshClient, configPresent: boolean): Q.IPromise<any> {
 
         var successPromise;
 
@@ -27,11 +27,11 @@ class TransferService extends AbstractService {
 
         successPromise = [
             () => { return this.makeReleasesDir(); },
-            () => { return this.purgeOldReleases(); },
-            () => { return this.uploadRelease(); },
-            () => { return this.unpackRelease(configPresent); },
-            () => { return this.setPermission(); },
-            () => { return this.linkRelease(); },
+            () => { return this.purgeOldReleases(sshClient); },
+            () => { return this.uploadRelease(sshClient); },
+            () => { return this.unpackRelease(sshClient, configPresent); },
+            () => { return this.setPermission(sshClient); },
+            () => { return this.linkRelease(sshClient); },
 
         ].reduce(Q.when, Q(null));
 
@@ -61,9 +61,8 @@ class TransferService extends AbstractService {
         return this.currentDir;
     }
 
-    private purgeOldReleases(): Q.Promise<{}> {
-        var client = this.services.ssh,
-            baseDir = this.getBaseDir(),
+    private purgeOldReleases(sshClient: SshClient): Q.Promise<{}> {
+        var baseDir = this.getBaseDir(),
             filesToKeep = this.services.config.globalConfig.releases.keep,
             tasks,
             successPromise;
@@ -71,10 +70,10 @@ class TransferService extends AbstractService {
         this.services.log.startSection('Purging outdated releases');
 
         tasks = [
-            () => { return client.exec(sprintf('rm -rf %s/releases/*.tar.gz', baseDir)); },
+            () => { return sshClient.exec(sprintf('rm -rf %s/releases/*.tar.gz', baseDir)); },
             () => {
                 var deferred = Q.defer();
-                client.exec(sprintf('ls %s/releases', baseDir)).then((procResult: SshResult) => {
+                sshClient.exec(sprintf('ls %s/releases', baseDir)).then((procResult: SshResult) => {
                     var i: any,
                         tasks: any[] = [],
                         dirNames = procResult.stdout.replace(/\n/g, ' ').trim().split(' ');
@@ -86,7 +85,7 @@ class TransferService extends AbstractService {
                     this.services.log.debug(sprintf('Purging %d outdated release%s', dirNames.length, dirNames.length === 1 ? '' : 's'));
 
                     dirNames.forEach((dirName) => {
-                        tasks.push(() => { return client.exec(sprintf('rm -rf %s/releases/%s', baseDir, dirName)); });
+                        tasks.push(() => { return sshClient.exec(sprintf('rm -rf %s/releases/%s', baseDir, dirName)); });
                     });
                     tasks.reduce(Q.when, Q(null)).then(
                         () => {
@@ -114,7 +113,7 @@ class TransferService extends AbstractService {
         var dir = this.getBaseDir(),
             releasesDir = dir + '/releases',
             currentReleaseDir = this.getCurrentDir(),
-            client = this.services.ssh,
+            client = this.sshClient,
             successPromise;
 
         this.services.log.startSection('Making sure releases directory exists');
@@ -132,16 +131,15 @@ class TransferService extends AbstractService {
         return successPromise;
     }
 
-    private uploadRelease() {
-        return this.services.ssh.upload(
+    private uploadRelease(sshClient: SshClient) {
+        return sshClient.upload(
             sprintf('%s%s.tar.gz', this.services.config.paths.getTemp(), this.services.config.projectName),
             sprintf('%s.tar.gz', this.getCurrentDir())
         );
     }
 
-    private unpackRelease(configPresent: boolean): Q.Promise<boolean> {
-        var client = this.services.ssh,
-            baseDir = this.getBaseDir(),
+    private unpackRelease(sshClient: SshClient, configPresent: boolean): Q.Promise<boolean> {
+        var baseDir = this.getBaseDir(),
             dir = this.getCurrentDir(),
             timestamp = this.timestamp,
             tasks,
@@ -150,16 +148,16 @@ class TransferService extends AbstractService {
         this.services.log.startSection('Unpacking release');
 
         tasks = [
-            () => { return client.exec(sprintf('tar -zxf %1$s.tar.gz -C %1$s', dir)); },
-            () => { return client.exec(sprintf('if [ -d "%1$s/config" ]; then rm -rf %1$s/config; fi', baseDir)); },
-            () => { return client.exec(sprintf('unlink %s.tar.gz', dir)); }
+            () => { return sshClient.exec(sprintf('tar -zxf %1$s.tar.gz -C %1$s', dir)); },
+            () => { return sshClient.exec(sprintf('if [ -d "%1$s/config" ]; then rm -rf %1$s/config; fi', baseDir)); },
+            () => { return sshClient.exec(sprintf('unlink %s.tar.gz', dir)); }
         ];
         if (configPresent) {
             tasks.push(() => {
-                return client.exec(sprintf('mv %s/_config-%s %s/config', dir, timestamp, baseDir));
+                return sshClient.exec(sprintf('mv %s/_config-%s %s/config', dir, timestamp, baseDir));
             });
             tasks.push(() => {
-                return client.exec(sprintf('ln -s ../../config %s/config', dir));
+                return sshClient.exec(sprintf('ln -s ../../config %s/config', dir));
             });
         }
         successPromise = tasks.reduce(Q.when, Q(null));
@@ -171,15 +169,15 @@ class TransferService extends AbstractService {
         return successPromise;
     }
 
-    private setPermission() : Q.IPromise<any> {
-        return this.services.ssh.exec(sprintf('chmod 0755 %s', this.getCurrentDir()));
+    private setPermission(sshClient: SshClient) : Q.IPromise<any> {
+        return sshClient.exec(sprintf('chmod 0755 %s', this.getCurrentDir()));
     }
 
-    private linkRelease(): Q.IPromise<any> {
+    private linkRelease(sshClient: SshClient): Q.IPromise<any> {
 
         return [
-            () => { return this.services.ssh.exec(sprintf('if [ -h "%1$s/current" ]; then unlink %1$s/current; fi', this.getBaseDir())); },
-            () => { return this.services.ssh.exec(sprintf('ln -s releases/%s %s/current', this.timestamp, this.getBaseDir())); }
+            () => { return sshClient.exec(sprintf('if [ -h "%1$s/current" ]; then unlink %1$s/current; fi', this.getBaseDir())); },
+            () => { return sshClient.exec(sprintf('ln -s releases/%s %s/current', this.timestamp, this.getBaseDir())); }
         ].reduce(Q.when, Q(null));
     }
 }
