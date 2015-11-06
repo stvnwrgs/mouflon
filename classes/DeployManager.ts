@@ -46,22 +46,27 @@ class DeployManager {
             configPresent = fs.existsSync(config.paths.getConfig() + config.projectName + '/' + config.stageName);
 
         var tasks = [
-            () => { return this.loadGlobalSettings() },
-            () => { return this.loadProjectSettings(); },
-            () => { return this.cache(); },
-            () => { return this.checkout(); },
-            () => { return this.build(); },
-            () => { return this.prepareTransfer(configPresent); }
+            () => this.loadGlobalSettings(),
+            () => this.loadProjectSettings(),
+            () => this.cache(),
+            () => this.checkout(),
+            () => this.build(),
+            () => this.prepareTransfer(configPresent),
+            () => {
+                var stageSpecificTasks = [];
+
+                this.services.config.getHostsForStage().forEach(host => {
+
+                    var client = this.services.sshClientFactory.getClient(host);
+
+                    stageSpecificTasks.push(() => this.services.transfer.transfer(client, configPresent));
+                    stageSpecificTasks.push(() => this.finalize());
+                    stageSpecificTasks.push(() => this.cleanUp());
+                });
+                return stageSpecificTasks.reduce(Q.when, Q(null));
+            }
         ];
 
-        this.services.config.getHostsForStage().forEach(host => {
-
-            let client = this.services.sshClientFactory.getClient(host);
-
-            tasks.push(() => { return this.services.transfer.transfer(client, configPresent); });
-            tasks.push(() => { return this.finalize(); });
-            tasks.push(() => { return this.cleanUp(); });
-        });
         return tasks.reduce(Q.when, Q(null));
     }
 
@@ -218,7 +223,7 @@ class DeployManager {
             fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer: Buffer) => {
                 var overrideSettings;
                 if (err) {
-                    this.services.log.warn('Could not load ' + settingsDir + 'local_override.yml');
+                    this.services.log.warn('Could not load optional ' + settingsDir + 'local_override.yml');
                     overrideSettings = {};
                 } else {
                     overrideSettings = jsyaml.load('' + overrideBuffer);

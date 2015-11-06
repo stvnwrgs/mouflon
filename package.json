@@ -1,6 +1,6 @@
 {
   "name":            "mouflon",
-  "version":         "0.2.8",
+  "version":         "0.3.0",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
   "author":          "SNM Style Net Media GmbH",
   "license":         "proprietary",
@@ -31,7 +31,6 @@
     "q":               "1.0.x",
     "rimraf":          "2.2.x",
     "shelljs":         "0.3.x",
-    "sprintf-js":      "1.0.x",
-    "minimist":        "1.1.x"
+    "sprintf-js":      "1.0.x"
   }
 }

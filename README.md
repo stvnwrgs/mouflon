@@ -1,7 +1,7 @@
 # Important Note
 This project is not yet mature. Please come back in early 2015 if you intend to work with it.
 
-# Mouflon v0.2.8
+# Mouflon v0.3.0
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -73,6 +73,7 @@ factory.setPaths({
  * 2015-01-12   v0.2.5    Added support for git submodules
  * 2015-02-26   v0.2.6    Added configuration feature for dist subdirectories being deployed (instead of the whole project root)
  * 2015-06-03   v0.2.7    Added maven task (local)
+ * 2015-11-06   v0.3.0    Now supports multiple hosts (and warns the deprecation of the old "host" server parameter)
 
 ---
 

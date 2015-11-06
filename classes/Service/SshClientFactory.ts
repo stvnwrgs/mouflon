@@ -11,8 +11,8 @@ class SshClientFactory extends AbstractService {
 
     getClient(hostName:string):SshClient {
         if (undefined === this.clientsForHost[hostName]) {
-            let server = this.services.config.getStageConfig().server;
-            this.clientsForHost[hostName] = new SshClient(hostName, server.user, server.port);
+            var server = this.services.config.getStageConfig().server;
+            this.clientsForHost[hostName] = new SshClient(hostName, server.port, server.user, this.services.log);
 
         }
         return this.clientsForHost[hostName];

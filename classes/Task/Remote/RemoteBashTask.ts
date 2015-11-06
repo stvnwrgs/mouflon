@@ -28,14 +28,11 @@ class RemoteBashTask extends AbstractTask implements Task {
             commandStrings.forEach(( command ) => {
                 if (command.length > 1) {
 
-
                     this.services.config.getHostsForStage().forEach(host => {
 
-                        let client = this.services.sshClientFactory.getClient(host);
+                        var client = this.services.sshClientFactory.getClient(host);
 
-                        commands.push(() => {
-                            return client.exec('cd ' + this.services.transfer.getCurrentDir() + '; ' + command);
-                        });
+                        commands.push(() => client.exec('cd ' + this.services.transfer.getCurrentDir() + '; ' + command));
                     });
 
                 }
