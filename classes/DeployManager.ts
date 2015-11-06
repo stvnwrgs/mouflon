@@ -30,20 +30,20 @@ import LinkedDirTask = require('./Task/Remote/LinkedDirTask');
 import LinkedFileTask = require('./Task/Remote/LinkedFileTask');
 import SshClient = require("./Service/SshClient");
 
-var merge: any = require('merge-recursive');
-var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
+var merge:any = require('merge-recursive');
+var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
 class DeployManager {
 
-    private services: ServiceContainer;
+    private services:ServiceContainer;
 
-    constructor(serviceContainer: ServiceContainer) {
+    constructor(serviceContainer:ServiceContainer) {
         this.services = serviceContainer;
     }
 
-    deploy(): Q.IPromise<boolean> {
+    deploy():Q.IPromise<boolean> {
 
-        var config = this.services.config,
+        var config        = this.services.config,
             configPresent = fs.existsSync(config.paths.getConfig() + config.projectName + '/' + config.stageName);
 
         var tasks = [
@@ -55,33 +55,31 @@ class DeployManager {
             () => this.prepareTransfer(configPresent),
             () => {
                 var stageSpecificTasks = [];
-
                 this.services.config.getHostsForStage().forEach(host => {
 
                     var client = this.services.sshClientFactory.getClient(host);
-
                     stageSpecificTasks.push(() => this.services.transfer.transfer(client, configPresent));
                     stageSpecificTasks.push(() => this.finalize(client));
-                    stageSpecificTasks.push(() => this.cleanUp());
                 });
                 return stageSpecificTasks.reduce(Q.when, Q(null));
-            }
+            },
+            () => this.cleanUp()
         ];
 
         return tasks.reduce(Q.when, Q(null));
     }
 
-    private build(): Q.Promise<boolean> {
+    private build():Q.Promise<boolean> {
 
         var tasks:Q.Promise<any>[] = [],
-            taskPromise: Q.Promise<boolean>;
+            taskPromise:Q.Promise<boolean>;
 
         this.services.log.startSection('Executing local build tasks');
         if (!this.services.config.projectConfig.localTasks) {
             this.services.log.closeSection('No local tasks found ("localTasks")');
 
         } else {
-            this.services.config.projectConfig.localTasks.forEach((task: TaskDefinition) => {
+            this.services.config.projectConfig.localTasks.forEach((task:TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'composer':
@@ -121,20 +119,22 @@ class DeployManager {
             });
         }
         taskPromise = tasks.reduce(Q.when, Q(null));
-        taskPromise.then(() => { this.services.log.closeSection('Local build tasks executed'); });
+        taskPromise.then(() => {
+            this.services.log.closeSection('Local build tasks executed');
+        });
         return taskPromise;
 
     }
 
-    private finalize(sshClient: SshClient): Q.Promise<boolean> {
-        var tasks = [],
+    private finalize(sshClient:SshClient):Q.Promise<boolean> {
+        var tasks       = [],
             remoteTasks = this.services.config.projectConfig.remoteTasks,
             successPromise;
 
         this.services.log.startSection('Executing remote tasks to finalize project');
 
         if (remoteTasks && remoteTasks.length > 0) {
-            remoteTasks.forEach((task: TaskDefinition) => {
+            remoteTasks.forEach((task:TaskDefinition) => {
                 var Class;
                 switch (task.task) {
                     case 'bash':
@@ -171,7 +171,7 @@ class DeployManager {
         return successPromise;
     }
 
-    private prepareTransfer(configPresent: boolean) {
+    private prepareTransfer(configPresent:boolean) {
         var config = this.services.config;
         var configDir = config.paths.getTemp() + config.projectName + (config.projectConfig.distDirectory !== '' ? '/' + config.projectConfig.distDirectory : '') + '/_config-' + this.services.config.timestamp;
         var tasks = [];
@@ -211,20 +211,20 @@ class DeployManager {
     }
 
 
-    private loadGlobalSettings(): Q.Promise<boolean> {
-        var config = this.services.config,
+    private loadGlobalSettings():Q.Promise<boolean> {
+        var config      = this.services.config,
             settingsDir = config.paths.getSettings(),
-            d = Q.defer<boolean>();
+            d           = Q.defer<boolean>();
 
         this.services.log.startSection('Loading global settings');
 
-        fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer: Buffer) => {
+        fs.readFile(settingsDir + 'settings.yml', (err, settingsBuffer:Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
             }
 
-            fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer: Buffer) => {
+            fs.readFile(settingsDir + 'local_override.yml', (err, overrideBuffer:Buffer) => {
                 var overrideSettings;
                 if (err) {
                     this.services.log.warn('Could not load optional ' + settingsDir + 'local_override.yml');
@@ -252,14 +252,14 @@ class DeployManager {
         return d.promise;
     }
 
-    private loadProjectSettings(): Q.Promise<boolean> {
-        var config = this.services.config,
+    private loadProjectSettings():Q.Promise<boolean> {
+        var config      = this.services.config,
             settingsDir = config.paths.getSettings(),
-            d = Q.defer<boolean>();
+            d           = Q.defer<boolean>();
 
         this.services.log.startSection('Loading project specific settings from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
 
-        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data: Buffer) => {
+        fs.readFile(settingsDir + 'projects/' + config.projectName + '/settings.yml', (err, data:Buffer) => {
             if (err) {
                 d.reject(err);
                 return;
@@ -291,10 +291,10 @@ class DeployManager {
         return d.promise;
     }
 
-    private cache(): Q.Promise<boolean> {
-        var config = this.services.config,
+    private cache():Q.Promise<boolean> {
+        var config      = this.services.config,
             stageConfig = config.getStageConfig(),
-            cacheDir = config.paths.getCache(),
+            cacheDir    = config.paths.getCache(),
             promise;
 
         this.services.log.startSection('Updating local cache');
@@ -317,14 +317,14 @@ class DeployManager {
         return promise;
     }
 
-    private checkout(): Q.Promise<boolean> {
+    private checkout():Q.Promise<boolean> {
 
-        var config = this.services.config,
+        var config      = this.services.config,
             stageConfig = config.getStageConfig(),
-            deferred = Q.defer<boolean>(),
-            tempDir = config.paths.getTemp(),
-            git = new Git.Git(tempDir + config.projectName),
-            cacheParam = ' --reference ' + config.paths.getCache() + config.projectName;
+            deferred    = Q.defer<boolean>(),
+            tempDir     = config.paths.getTemp(),
+            git         = new Git.Git(tempDir + config.projectName),
+            cacheParam  = ' --reference ' + config.paths.getCache() + config.projectName;
 
         this.services.log.startSection(sprintf('Checking out branch "%s" from "%s"...', stageConfig.branch, config.projectConfig.repo.url));
 
