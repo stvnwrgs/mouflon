@@ -28,6 +28,7 @@ import TaskDefinition = require('./Task/TaskDefinition');
 import RemoteBashTask = require('./Task/Remote/RemoteBashTask');
 import LinkedDirTask = require('./Task/Remote/LinkedDirTask');
 import LinkedFileTask = require('./Task/Remote/LinkedFileTask');
+import SshClient = require("./Service/SshClient");
 
 var merge: any = require('merge-recursive');
 var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
@@ -60,7 +61,7 @@ class DeployManager {
                     var client = this.services.sshClientFactory.getClient(host);
 
                     stageSpecificTasks.push(() => this.services.transfer.transfer(client, configPresent));
-                    stageSpecificTasks.push(() => this.finalize());
+                    stageSpecificTasks.push(() => this.finalize(client));
                     stageSpecificTasks.push(() => this.cleanUp());
                 });
                 return stageSpecificTasks.reduce(Q.when, Q(null));
@@ -125,7 +126,7 @@ class DeployManager {
 
     }
 
-    private finalize(): Q.Promise<boolean> {
+    private finalize(sshClient: SshClient): Q.Promise<boolean> {
         var tasks = [],
             remoteTasks = this.services.config.projectConfig.remoteTasks,
             successPromise;
@@ -151,6 +152,9 @@ class DeployManager {
                 }
 
                 var instance = new Class(this.services, task.prefs ? task.prefs : {});
+
+                instance.setSshClient(sshClient);
+
                 tasks.push(instance.execute.bind(instance));
             });
         }

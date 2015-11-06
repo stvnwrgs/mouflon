@@ -10,29 +10,33 @@ import AbstractService = require('./AbstractService');
 import SshResult = require('./SshResult');
 import LogService = require("./LogService");
 
-var VendorSshClient: any = require('node-sshclient');
-var color: any = require('cli-color');
-var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
+var VendorSshClient:any = require('node-sshclient');
+var color:any = require('cli-color');
+var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
-class SshClient  {
+class SshClient {
 
-    private sshClient: any = null;
-    private scpClient: any = null;
+    private sshClient:any = null;
+    private scpClient:any = null;
 
-    constructor (private host: string,
-                 private port: number,
-                 private user: string,
-                 private log: LogService) {
+    constructor(private host:string,
+                private port:number,
+                private user:string,
+                private log:LogService) {
 
     }
 
-    exec(command: string): Q.Promise<SshResult> {
+    getHost():string {
+        return this.host;
+    }
+
+    exec(command:string):Q.Promise<SshResult> {
         var deferred = Q.defer<SshResult>(),
-            client = this.getSshClient();
+            client   = this.getSshClient();
 
         this.log.logCommand('SSH cmd: ' + command);
 
-        client.command(command, (procResult: SshResult) => {
+        client.command(command, (procResult:SshResult) => {
             var resultString = sprintf('Response (code %s): "%s", err: "%s"', procResult.exitCode, procResult.stdout, procResult.stderr);
             if (procResult.exitCode !== 0) {
                 deferred.reject(resultString);
@@ -45,11 +49,11 @@ class SshClient  {
         return deferred.promise;
     }
 
-    upload(filename: string, remoteFilename: string) {
+    upload(filename:string, remoteFilename:string) {
         var deferred = Q.defer();
 
         this.log.startSection(sprintf('Uploading "%s" to "%s"', filename, remoteFilename));
-        this.getScpClient().upload(filename, remoteFilename, (procResult: any) => {
+        this.getScpClient().upload(filename, remoteFilename, (procResult:any) => {
             if (procResult.exitCode !== 0) {
                 deferred.reject(procResult.stderr);
                 return;
@@ -60,7 +64,7 @@ class SshClient  {
         return deferred.promise;
     }
 
-    private getSshClient(): any {
+    private getSshClient():any {
 
         if (this.sshClient === null) {
             this.log.logCommand(sprintf('Connecting SSH to %s@%s:%s ...', this.user, this.host, this.port));
@@ -73,7 +77,7 @@ class SshClient  {
         return this.sshClient;
     }
 
-    private getScpClient(): any {
+    private getScpClient():any {
 
         if (this.scpClient === null) {
             this.log.logCommand(sprintf('Connecting SCP to %s@%s:%s ...', this.user, this.host, this.port));

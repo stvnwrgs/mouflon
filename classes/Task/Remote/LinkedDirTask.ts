@@ -6,9 +6,17 @@ import Task = require('./../Task');
 
 import Q = require('q');
 import fs = require('fs');
+import TaskWithSshClient = require("../TaskWithSshClient");
+import SshClient = require("../../Service/SshClient");
 var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
-class LinkedDirTask extends AbstractTask implements Task {
+class LinkedDirTask extends AbstractTask implements TaskWithSshClient {
+
+    private sshClient:SshClient;
+
+    setSshClient(sshClient:SshClient):void {
+        this.sshClient = sshClient;
+    }
 
     execute():Q.Promise<any> {
         var baseDir    = this.services.transfer.getBaseDir(),
@@ -19,15 +27,10 @@ class LinkedDirTask extends AbstractTask implements Task {
             () => this.services.log.startSection('Making sure linked directories exist on remote')
         ];
 
-        this.services.config.getHostsForStage().forEach(host => {
-
-            var client = this.services.sshClientFactory.getClient(host);
-
-            this.getPrefs()['directories'].forEach((directory:string)=> {
-                commands.push(() => client.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory)));
-                commands.push(() => client.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir)));
-                commands.push(() => client.exec(sprintf('chmod 0777 %s/%s', currentDir, directory)));
-            });
+        this.getPrefs()['directories'].forEach((directory:string)=> {
+            commands.push(() => this.sshClient.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory)));
+            commands.push(() => this.sshClient.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir)));
+            commands.push(() => this.sshClient.exec(sprintf('chmod 0777 %s/%s', currentDir, directory)));
         });
 
         commands.push(() => this.services.log.closeSection('All linked directories exist.'));

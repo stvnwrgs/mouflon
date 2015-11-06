@@ -6,18 +6,26 @@ import Task = require('./../Task');
 
 import Q = require('q');
 import fs = require('fs');
+import TaskWithSshClient = require("../TaskWithSshClient");
+import SshClient = require("../../Service/SshClient");
 
-class RemoteBashTask extends AbstractTask implements Task {
+class RemoteBashTask extends AbstractTask implements TaskWithSshClient {
+
+    private sshClient:SshClient;
+
+    setSshClient(sshClient:SshClient):void {
+        this.sshClient = sshClient;
+    }
 
     execute() {
         var d = Q.defer();
 
         this.services.log.startSection('Executing remote bash commands');
 
-        fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_remote.sh', ( err, buffer: Buffer )=> {
-            var content: string,
+        fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_remote.sh', (err, buffer:Buffer)=> {
+            var content:string,
                 commands = [],
-                commandStrings: string[];
+                commandStrings:string[];
             if (err) {
                 d.reject(err);
                 return;
@@ -25,23 +33,16 @@ class RemoteBashTask extends AbstractTask implements Task {
 
             content = '' + buffer;
             commandStrings = content.replace("#!/bin/sh", '').split("\n");
-            commandStrings.forEach(( command ) => {
+            commandStrings.forEach((command) => {
                 if (command.length > 1) {
-
-                    this.services.config.getHostsForStage().forEach(host => {
-
-                        var client = this.services.sshClientFactory.getClient(host);
-
-                        commands.push(() => client.exec('cd ' + this.services.transfer.getCurrentDir() + '; ' + command));
-                    });
-
+                    commands.push(() => this.sshClient.exec('cd ' + this.services.transfer.getCurrentDir() + '; ' + command));
                 }
             });
 
             commands.reduce(Q.when, Q(null)).then(() => {
                 this.services.log.closeSection('All bash commands executed');
                 d.resolve(true);
-            }).fail(( error )=> {
+            }).fail((error)=> {
                 d.reject(error);
             });
         });
