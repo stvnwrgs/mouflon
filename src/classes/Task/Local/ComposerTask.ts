@@ -10,12 +10,12 @@ import Task from './../Task';
 export default class ComposerTask extends AbstractTask implements Task {
 
     execute() {
-        var d = Q.defer(),
-            filename = path.join( this.services.config.paths.getTemp(), this.services.config.projectName,'composer.json');
+        let d        = Q.defer(),
+            filename = path.join(this.services.config.paths.getTemp(), this.services.config.projectName, 'composer.json');
 
-        fs.readFile(filename, (err, settingsBuffer: Buffer) => {
+        fs.readFile(filename, (err, settingsBuffer:Buffer) => {
 
-            var info = JSON.parse(settingsBuffer + '');
+            let info = JSON.parse(settingsBuffer + '');
 
             if (err) {
                 this.services.log.startSection('Installing composer dependencies');
@@ -24,12 +24,11 @@ export default class ComposerTask extends AbstractTask implements Task {
                 this.services.log.startSection(`Installing ${Object.keys(info.require).length} composer dependencies`);
             }
 
-            this.services.shell.exec(this.services.config.globalConfig.composer.command + ' install --optimize-autoloader').then((stdout) => {
-                this.services.log.closeSection('Composer dependencies installed');
-                d.resolve(true);
-            }).fail(function (error) {
-                d.reject(error);
-            });
+            this.services.shell.exec(this.services.config.globalConfig.composer.command + ' install --optimize-autoloader')
+                .then((stdout) => {
+                    this.services.log.closeSection('Composer dependencies installed');
+                    d.resolve(true);
+                }).fail(error => d.reject(error));
         });
         return d.promise;
 

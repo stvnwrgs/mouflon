@@ -11,7 +11,7 @@ export default class AbstractTask {
 
     modify(modBody:string) {
 
-        var wrapper = new Function('$stageName', modBody);
+        let wrapper = new Function('$stageName', modBody);
         wrapper.apply(this, [this.services.config.stageName]);
     }
 }

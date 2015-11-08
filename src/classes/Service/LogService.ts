@@ -55,7 +55,7 @@ export default class LogService extends AbstractService {
     }
 
     private getTimeString() {
-        var now = new Date(),
+        let now = new Date(),
             timeString;
 
         timeString = ('00' + now.getHours()).substr(-2, 2) +

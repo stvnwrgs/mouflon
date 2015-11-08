@@ -15,7 +15,7 @@ export default class BowerTask extends AbstractTask implements Task {
 
         fs.readFile(filename, (err, settingsBuffer:Buffer) => {
 
-            var info = JSON.parse(settingsBuffer + '');
+            let info = JSON.parse(settingsBuffer.toString());
 
             if (err) {
                 this.services.log.warn('bower.json not present');
@@ -24,13 +24,11 @@ export default class BowerTask extends AbstractTask implements Task {
             }
 
             this.services.shell.exec('bower install').then(
-                ()=> {
+                () => {
                     this.services.log.closeSection('Bower packages installed');
                     deferred.resolve(true);
                 },
-                (error) => {
-                    deferred.reject(error);
-                });
+                error => deferred.reject(error));
         });
 
         return deferred.promise;

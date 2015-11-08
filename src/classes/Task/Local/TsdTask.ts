@@ -9,7 +9,7 @@ export default class TsdTask extends AbstractTask implements Task {
 
     execute() {
 
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
         this.services.log.startSection('Updating typescript definitions');
         this.services.shell.exec('tsd reinstall -so').then(()=> {

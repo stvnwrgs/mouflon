@@ -9,7 +9,7 @@ export default class GulpTask extends AbstractTask implements Task {
 
     execute() {
 
-        var deferred = Q.defer(),
+        let deferred = Q.defer(),
             task     = this.getPrefs()['task'] ? ' ' + this.getPrefs()['task'] : '';
 
         this.services.log.startSection('Executing gulp task' + task);

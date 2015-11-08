@@ -19,7 +19,7 @@ export default class TransferService extends AbstractService {
 
     transfer(sshClient:SshClient, configPresent:boolean):Q.IPromise<any> {
 
-        var successPromise;
+        let successPromise;
 
         this.services.log.startSection('Transferring project to remote "' + sshClient.getHost() + '"');
 
@@ -64,7 +64,7 @@ export default class TransferService extends AbstractService {
         let tasks = [
             () => sshClient.exec(`rm -rf ${baseDir}/releases/*.tar.gz`),
             () => {
-                var deferred = Q.defer();
+                let deferred = Q.defer();
                 sshClient.exec(`ls ${baseDir}/releases`).then((procResult:SshResult) => {
                     let dirNames = procResult.stdout
                                              .replace(/\n/g, ' ')

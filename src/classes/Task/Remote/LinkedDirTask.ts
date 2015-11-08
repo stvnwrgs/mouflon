@@ -17,12 +17,11 @@ export default class LinkedDirTask extends AbstractTask implements TaskWithSshCl
         this.sshClient = sshClient;
     }
 
-    execute():Q.Promise<any> {
-        var baseDir    = this.services.transfer.getBaseDir(),
-            currentDir = this.services.transfer.getCurrentDir(),
-            commands;
+    execute(): Q.Promise<any> {
+        let baseDir    = this.services.transfer.getBaseDir(),
+            currentDir = this.services.transfer.getCurrentDir();
 
-        commands = [
+        let commands = [
             () => this.services.log.startSection('Making sure linked directories exist on remote')
         ];
 
@@ -38,6 +37,6 @@ export default class LinkedDirTask extends AbstractTask implements TaskWithSshCl
         });
 
         commands.push(() => this.services.log.closeSection('All linked directories exist.'));
-        return commands.reduce(Q.when, Q(null));
+        return <Q.Promise<any>> commands.reduce(Q.when, Q(null));
     }
 }

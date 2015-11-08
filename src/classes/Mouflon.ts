@@ -23,7 +23,7 @@ export default class Mouflon {
     }
 
     deploy() {
-        var start           = (new Date()).getTime(),
+        let start           = (new Date()).getTime(),
             deployPromise:Q.IPromise<boolean>,
             config          = this.serviceContainer.config,
             packageData:any = JSON.parse('' + fs.readFileSync(__dirname + '/../../package.json'));
@@ -46,7 +46,7 @@ export default class Mouflon {
 
         deployPromise.then(
             () => {
-                var end = (new Date()).getTime(),
+                let end = (new Date()).getTime(),
                     duration = (0.001 * (end - start)).toFixed(3);
                 this.log.closeSection(`It took ${duration}s to deploy "${config.projectName}" to "${config.stageName}". :)` + "\n\n");
             },

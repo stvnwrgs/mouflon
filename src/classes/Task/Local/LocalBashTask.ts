@@ -8,23 +8,21 @@ import Task from './../Task';
 export default class LocalBashTask extends AbstractTask implements Task {
 
     execute() {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
         this.services.log.startSection('Executing local bash commands');
-        var commands = [];
+
+        let commands = [];
         fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_local.sh', (err, buffer: Buffer)=> {
-            var content: string;
             if (err) {
                 deferred.reject(err);
                 return;
             }
 
-            content = '' + buffer;
-            content.replace("#!/bin/sh", '').split("\n").forEach((command) => {
+           let content = '' + buffer;
+            content.replace("#!/bin/sh", '').split("\n").forEach(command => {
                 if (command.length > 1) {
-                    commands.push(() => {
-                        return this.services.shell.exec(command);
-                    });
+                    commands.push(() => this.services.shell.exec(command));
                 }
             });
 
@@ -33,9 +31,7 @@ export default class LocalBashTask extends AbstractTask implements Task {
                     this.services.log.closeSection('All local bash commands executed');
                     deferred.resolve(true);
                 },
-                (error) => {
-                    deferred.reject(error);
-                }
+                error => deferred.reject(error)
             );
         });
         return deferred.promise;

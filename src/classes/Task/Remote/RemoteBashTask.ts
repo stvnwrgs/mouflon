@@ -2,6 +2,7 @@
 
 import Q = require('q');
 import fs = require('fs');
+import path = require('path');
 
 import AbstractTask from './../AbstractTask';
 import Task from './../Task';
@@ -17,34 +18,37 @@ export default class RemoteBashTask extends AbstractTask implements TaskWithSshC
     }
 
     execute() {
-        var d = Q.defer();
+        let deferred   = Q.defer(),
+            bashSource = path.join(
+                this.services.config.paths.getSettings() + 'projects',
+                this.services.config.projectName,
+                'bash_remote.sh'
+            );
 
         this.services.log.startSection('Executing remote bash commands');
 
-        fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_remote.sh', (err, buffer:Buffer)=> {
-            var content:string,
-                commands = [],
+        fs.readFile(bashSource, (err, buffer:Buffer)=> {
+            let content:string,
                 commandStrings:string[];
             if (err) {
-                d.reject(err);
+                deferred.reject(err);
                 return;
             }
 
             content = '' + buffer;
             commandStrings = content.replace("#!/bin/sh", '').split("\n");
-            commandStrings.forEach((command) => {
-                if (command.length > 1) {
-                    commands.push(() => this.sshClient.exec('cd ' + this.services.transfer.getCurrentDir() + '; ' + command));
-                }
-            });
 
-            commands.reduce(Q.when, Q(null)).then(() => {
-                this.services.log.closeSection('All bash commands executed');
-                d.resolve(true);
-            }).fail((error)=> {
-                d.reject(error);
-            });
+            let commands = commandStrings
+                .filter(command => command.length > 1)
+                .map(command => () => this.sshClient.exec(`cd ${this.services.transfer.getCurrentDir()}; ${command}`));
+
+            commands.reduce(Q.when, Q(null)).then(
+                () => {
+                    this.services.log.closeSection('All bash commands executed');
+                    deferred.resolve(true);
+                },
+                error => deferred.reject(error));
         });
-        return d.promise;
+        return deferred.promise;
     }
 }

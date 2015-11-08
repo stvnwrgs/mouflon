@@ -24,13 +24,13 @@ export default class SshClient {
     }
 
     exec(command:string):Q.Promise<SshResult> {
-        var deferred = Q.defer<SshResult>(),
+        let deferred = Q.defer<SshResult>(),
             client   = this.getSshClient();
 
         this.log.logCommand('SSH cmd: ' + command);
 
         client.command(command, (procResult:SshResult) => {
-            var resultString = `Response (code ${procResult.exitCode}): "${procResult.stdout}", err: "${procResult.stderr}"`;
+            let resultString = `Response (code ${procResult.exitCode}): "${procResult.stdout}", err: "${procResult.stderr}"`;
             if (procResult.exitCode !== 0) {
                 deferred.reject(resultString);
             } else {
