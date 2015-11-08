@@ -28,15 +28,16 @@ export default class RemoteBashTask extends AbstractTask implements TaskWithSshC
         this.services.log.startSection('Executing remote bash commands');
 
         fs.readFile(bashSource, (err, buffer:Buffer)=> {
-            let content:string,
-                commandStrings:string[];
             if (err) {
                 deferred.reject(err);
                 return;
             }
 
-            content = '' + buffer;
-            commandStrings = content.replace("#!/bin/sh", '').split("\n");
+            let content = buffer.toString();
+
+            let commandStrings = content
+                .replace("#!/bin/sh", '')
+                .split("\n");
 
             let commands = commandStrings
                 .filter(command => command.length > 1)
