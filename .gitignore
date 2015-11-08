@@ -1,8 +1,5 @@
 /.idea
 /dist
-/temp
 /node_modules
-/config
-/settings/local_override.yml
 npm-debug.log
 mouflon-*.tgz
