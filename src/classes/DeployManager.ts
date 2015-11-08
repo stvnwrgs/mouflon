@@ -9,7 +9,7 @@ import jsyaml = require('js-yaml');
 var merge:any = require('merge-recursive');
 
 import GlobalConfig from './Config/GlobalConfig';
-import Paths from './Config/Paths';
+import PathConfig from './Config/PathConfig';
 
 import ServiceContainer from './Service/ServiceContainer';
 

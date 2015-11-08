@@ -4,7 +4,7 @@ import ServiceContainer from './ServiceContainer';
 import GlobalConfig from './../Config/GlobalConfig';
 import ProjectConfig from './../Config/ProjectConfig';
 import StageConfig from './../Config/StageConfig';
-import Paths from './../Config/Paths';
+import PathConfig from './../Config/PathConfig';
 import Utils from "../Utils";
 
 export default class DeployConfigService extends AbstractService {
@@ -16,7 +16,7 @@ export default class DeployConfigService extends AbstractService {
 
     constructor(public projectName:string,
                 public stageName:string,
-                public paths:Paths,
+                public paths:PathConfig,
                 public timestamp:string,
                 serviceContainer:ServiceContainer) {
         super(serviceContainer);

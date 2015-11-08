@@ -1,4 +1,4 @@
-export default class Paths {
+export default class PathConfig {
 
     constructor(private temp: string, private settings: string, private config: string, private cache: string) {
     }
