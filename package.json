@@ -1,17 +1,12 @@
 {
   "name":            "mouflon",
-  "version":         "0.3.1",
+  "version":         "0.4.0-rc1",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
   "author":          "SNM Style Net Media GmbH",
   "license":         "proprietary",
-  "devDependencies": {
-    "grunt":               "0.4.x",
-    "grunt-contrib-watch": "0.6.x",
-    "grunt-typescript":    "0.4.x"
-  },
   "main":            "./dist/classes/MouflonFactory",
   "scripts":         {
-    "prepublish": "grunt"
+    "prepublish": "tasky build"
   },
   "repository":      {
     "type": "git",
@@ -30,6 +25,6 @@
     "node-sshclient":  "0.1.x",
     "q":               "1.0.x",
     "rimraf":          "2.2.x",
-    "shelljs":         "0.3.x",
+    "shelljs":         "0.3.x"
   }
 }
