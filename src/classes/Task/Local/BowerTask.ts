@@ -11,7 +11,7 @@ export default class BowerTask extends AbstractTask implements Task {
 
     execute():Q.Promise<boolean> {
         let deferred = Q.defer<boolean>(),
-            filename = path.join(this.services.config.paths.getTemp(), this.services.config.projectName, 'bower.json');
+            filename = path.join(this.services.config.pathConfig.getTemp(), this.services.config.projectName, 'bower.json');
 
         fs.readFile(filename, (err, settingsBuffer:Buffer) => {
 

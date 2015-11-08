@@ -11,7 +11,7 @@ export default class ComposerTask extends AbstractTask implements Task {
 
     execute() {
         let d        = Q.defer(),
-            filename = path.join(this.services.config.paths.getTemp(), this.services.config.projectName, 'composer.json');
+            filename = path.join(this.services.config.pathConfig.getTemp(), this.services.config.projectName, 'composer.json');
 
         fs.readFile(filename, (err, settingsBuffer:Buffer) => {
 

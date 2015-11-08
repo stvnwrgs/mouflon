@@ -12,7 +12,7 @@ export default class NodeTask extends AbstractTask implements Task {
     execute() {
 
         let deferred = Q.defer(),
-            filename = path.join(this.services.config.paths.getTemp(), this.services.config.projectName, 'package.json');
+            filename = path.join(this.services.config.pathConfig.getTemp(), this.services.config.projectName, 'package.json');
 
         fs.readFile(filename, (err, settingsBuffer:Buffer) => {
 

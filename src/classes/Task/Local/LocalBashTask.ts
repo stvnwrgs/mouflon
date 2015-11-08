@@ -13,7 +13,7 @@ export default class LocalBashTask extends AbstractTask implements Task {
         this.services.log.startSection('Executing local bash commands');
 
         let commands = [];
-        fs.readFile(this.services.config.paths.getSettings() + 'projects/' + this.services.config.projectName + '/bash_local.sh', (err, buffer: Buffer)=> {
+        fs.readFile(this.services.config.pathConfig.getSettings() + 'projects/' + this.services.config.projectName + '/bash_local.sh', (err, buffer: Buffer)=> {
             if (err) {
                 deferred.reject(err);
                 return;

@@ -40,7 +40,7 @@ export default class Mouflon {
         if (this.serviceContainer.config.verbose) {
             this.log.debug('Verbose mode is enabled');
         }
-        this.log.debug('Working pathConfig: ' + this.serviceContainer.config.paths.getReadable());
+        this.log.debug('Working pathConfig: ' + this.serviceContainer.config.pathConfig.getReadable());
 
         deployPromise = this.deployManager.deploy();
 

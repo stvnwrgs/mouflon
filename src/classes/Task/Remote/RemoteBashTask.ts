@@ -20,7 +20,7 @@ export default class RemoteBashTask extends AbstractTask implements TaskWithSshC
     execute() {
         let deferred   = Q.defer(),
             bashSource = path.join(
-                this.services.config.paths.getSettings() + 'projects',
+                this.services.config.pathConfig.getSettings() + 'projects',
                 this.services.config.projectName,
                 'bash_remote.sh'
             );

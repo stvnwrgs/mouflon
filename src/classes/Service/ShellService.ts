@@ -12,7 +12,7 @@ export default class ShellService extends AbstractService {
         let deferred = Q.defer<string>();
 
         if (!global) {
-            command = `cd ${this.services.config.paths.getTemp() + this.services.config.projectName}%s; ${command}`;
+            command = `cd ${this.services.config.pathConfig.getTemp() + this.services.config.projectName}; ${command}`;
         }
         this.services.log.debug('Executing: ' + command);
         let result = Shell.exec(command, {

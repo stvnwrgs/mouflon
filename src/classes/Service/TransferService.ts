@@ -120,7 +120,7 @@ export default class TransferService extends AbstractService {
 
     private uploadRelease(sshClient:SshClient) {
         return sshClient.upload(
-            this.services.config.paths.getTemp() + this.services.config.projectName + '.tar.gz',
+            this.services.config.pathConfig.getTemp() + this.services.config.projectName + '.tar.gz',
             this.getCurrentDir() + '.tar.gz'
         );
     }

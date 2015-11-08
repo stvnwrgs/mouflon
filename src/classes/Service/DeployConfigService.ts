@@ -16,7 +16,7 @@ export default class DeployConfigService extends AbstractService {
 
     constructor(public projectName:string,
                 public stageName:string,
-                public paths:PathConfig,
+                public pathConfig:PathConfig,
                 public timestamp:string,
                 serviceContainer:ServiceContainer) {
         super(serviceContainer);

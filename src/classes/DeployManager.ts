@@ -39,7 +39,7 @@ export default class DeployManager {
     deploy():Q.IPromise<boolean> {
 
         let config        = this.services.config,
-            configPresent = fs.existsSync(path.join(config.paths.getConfig() + config.projectName, config.stageName));
+            configPresent = fs.existsSync(path.join(config.pathConfig.getConfig() + config.projectName, config.stageName));
 
         let tasks = [
             () => this.loadGlobalSettings(),
@@ -165,7 +165,7 @@ export default class DeployManager {
 
     private prepareTransfer(configPresent:boolean) {
         let config    = this.services.config,
-            configDir = config.paths.getTemp() + config.projectName + (config.projectConfig.distDirectory !== '' ? '/' + config.projectConfig.distDirectory : '') + '/_config-' + this.services.config.timestamp,
+            configDir = config.pathConfig.getTemp() + config.projectName + (config.projectConfig.distDirectory !== '' ? '/' + config.projectConfig.distDirectory : '') + '/_config-' + this.services.config.timestamp,
             tasks     = [],
             successPromise;
 
@@ -178,7 +178,7 @@ export default class DeployManager {
                     return this.services.shell.exec('mkdir ' + configDir, true);
                 },
                 () => {
-                    return this.services.shell.exec('cp -r ' + config.paths.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {
+                    return this.services.shell.exec('cp -r ' + config.pathConfig.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {
                         this.services.log.closeSection('Config files added to package');
                     });
                 }
@@ -205,7 +205,7 @@ export default class DeployManager {
 
     private loadGlobalSettings():Q.Promise<boolean> {
         let config      = this.services.config,
-            settingsDir = config.paths.getSettings(),
+            settingsDir = config.pathConfig.getSettings(),
             deferred    = Q.defer<boolean>();
 
         this.services.log.startSection('Loading global settings');
@@ -246,7 +246,7 @@ export default class DeployManager {
 
     private loadProjectSettings():Q.Promise<boolean> {
         let config      = this.services.config,
-            settingsDir = config.paths.getSettings(),
+            settingsDir = config.pathConfig.getSettings(),
             deferred    = Q.defer<boolean>();
 
         this.services.log.startSection('Loading project specific settings from ' + settingsDir + 'projects/' + config.projectName + '/settings.yml');
@@ -286,7 +286,7 @@ export default class DeployManager {
     private cache():Q.Promise<any> {
         let config      = this.services.config,
             stageConfig = config.getStageConfig(),
-            cacheDir    = config.paths.getCache(),
+            cacheDir    = config.pathConfig.getCache(),
             promise:Q.Promise<any>;
 
         this.services.log.startSection('Updating local cache');
@@ -309,9 +309,9 @@ export default class DeployManager {
         let config      = this.services.config,
             stageConfig = config.getStageConfig(),
             deferred    = Q.defer<boolean>(),
-            tempDir     = config.paths.getTemp(),
+            tempDir     = config.pathConfig.getTemp(),
             git         = new Git.Git(tempDir + config.projectName),
-            cacheParam  = ' --reference ' + config.paths.getCache() + config.projectName;
+            cacheParam  = ' --reference ' + config.pathConfig.getCache() + config.projectName;
 
         this.services.log.startSection(`Checking out branch "${stageConfig.branch}" from "${config.projectConfig.repo.url}"...`);
 
@@ -352,7 +352,7 @@ export default class DeployManager {
 
     private cleanUp() {
         this.services.log.startSection('Purging temporary files');
-        return this.services.shell.exec('cd ' + this.services.config.paths.getTemp() + '; rm -rf ..?* .[!.]* *', true).then(() => {
+        return this.services.shell.exec('cd ' + this.services.config.pathConfig.getTemp() + '; rm -rf ..?* .[!.]* *', true).then(() => {
             this.services.log.closeSection('Temporary files purged.');
         });
     }
