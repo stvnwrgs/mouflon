@@ -2,7 +2,7 @@
 
 import Q = require('q');
 import fs = require('fs');
-var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
+import path = require('path');
 
 import AbstractTask from './../AbstractTask';
 import Task from './../Task';
@@ -27,9 +27,14 @@ export default class LinkedDirTask extends AbstractTask implements TaskWithSshCl
         ];
 
         this.getPrefs()['directories'].forEach((directory:string)=> {
-            commands.push(() => this.sshClient.exec(sprintf('if [ ! -d "%1$s/%2$s" ]; then mkdir -m=0777 %1$s/%2$s; fi', baseDir, directory)));
-            commands.push(() => this.sshClient.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', directory, currentDir)));
-            commands.push(() => this.sshClient.exec(sprintf('chmod 0777 %s/%s', currentDir, directory)));
+
+            let dir        = path.join(currentDir, directory),
+                linkSource = path.join('..', '..', directory),
+                appDir     = path.join(baseDir, directory);
+
+            commands.push(() => this.sshClient.exec(`if [ ! -d "${appDir}" ]; then mkdir -m=0777 ${appDir}; fi`));
+            commands.push(() => this.sshClient.exec(`ln -fs ${linkSource} ${dir}`));
+            commands.push(() => this.sshClient.exec(`chmod 0777 ${dir}`));
         });
 
         commands.push(() => this.services.log.closeSection('All linked directories exist.'));

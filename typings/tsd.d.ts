@@ -5,6 +5,5 @@
 /// <reference path="node/node.d.ts" />
 /// <reference path="q/Q.d.ts" />
 /// <reference path="shelljs/shelljs.d.ts" />
-/// <reference path="sprintf/sprintf.d.ts" />
 /// <reference path="node-git.d.ts" />
 /// <reference path="rimraf.d.ts" />

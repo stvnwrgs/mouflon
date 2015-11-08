@@ -2,7 +2,7 @@
 
 import Q = require('q');
 import fs = require('fs');
-var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
+import path = require('path');
 
 import AbstractTask from './../AbstractTask';
 import Task from './../Task';
@@ -11,7 +11,7 @@ export default class ComposerTask extends AbstractTask implements Task {
 
     execute() {
         var d = Q.defer(),
-            filename = sprintf('%s/%s/composer.json', this.services.config.paths.getTemp(), this.services.config.projectName);
+            filename = path.join( this.services.config.paths.getTemp(), this.services.config.projectName,'composer.json');
 
         fs.readFile(filename, (err, settingsBuffer: Buffer) => {
 
@@ -21,7 +21,7 @@ export default class ComposerTask extends AbstractTask implements Task {
                 this.services.log.startSection('Installing composer dependencies');
                 this.services.log.warn('composer.json not present');
             } else {
-                this.services.log.startSection(sprintf('Installing %d composer dependencies', Object.keys(info.require).length));
+                this.services.log.startSection(`Installing ${Object.keys(info.require).length} composer dependencies`);
             }
 
             this.services.shell.exec(this.services.config.globalConfig.composer.command + ' install --optimize-autoloader').then((stdout) => {

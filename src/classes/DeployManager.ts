@@ -6,7 +6,6 @@ import rimraf = require('rimraf');
 import Q = require('q');
 import jsyaml = require('js-yaml');
 var merge:any = require('merge-recursive');
-var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
 import GlobalConfig from './Config/GlobalConfig';
 import Paths from './Config/Paths';
@@ -27,7 +26,6 @@ import RemoteBashTask from './Task/Remote/RemoteBashTask';
 import LinkedDirTask from './Task/Remote/LinkedDirTask';
 import LinkedFileTask from './Task/Remote/LinkedFileTask';
 import SshClient from "./Service/SshClient";
-
 
 export default class DeployManager {
 
@@ -159,7 +157,7 @@ export default class DeployManager {
 
         successPromise.then(()=> {
             if (remoteTasks && remoteTasks.length > 0) {
-                this.services.log.closeSection(sprintf('Successfully executed %d remote tasks.', remoteTasks.length));
+                this.services.log.closeSection(`Successfully executed ${remoteTasks.length} remote tasks.`);
             } else {
                 this.services.log.closeSection('There were no remote tasks to execute');
             }
@@ -300,29 +298,24 @@ export default class DeployManager {
         if (fs.existsSync(cacheDir + config.projectName)) {
             promise = this.services.shell.exec('cd ' + cacheDir + config.projectName + '; git fetch && git checkout ' + stageConfig.branch + ' && git pull', true)
         } else {
-            promise = this.services.shell.exec(sprintf('git clone %s -b %s %s %s',
-                config.projectConfig.repo.submodules ? '--recursive' : '',
-                stageConfig.branch,
-                config.projectConfig.repo.url,
-                cacheDir + config.projectName
-            ));
+            let recFlag = config.projectConfig.repo.submodules ? '--recursive' : '';
+            promise = this.services.shell.exec(
+                `git clone ${recFlag} -b ${stageConfig.branch} ${config.projectConfig.repo.url} ${cacheDir + config.projectName}`);
         }
-        promise.then(()=> {
-            this.services.log.closeSection('Local cache updated');
-        });
+        promise.then(()=> this.services.log.closeSection('Local cache updated'));
         return promise;
     }
 
     private checkout():Q.Promise<boolean> {
 
-        var config      = this.services.config,
+        let config      = this.services.config,
             stageConfig = config.getStageConfig(),
             deferred    = Q.defer<boolean>(),
             tempDir     = config.paths.getTemp(),
             git         = new Git.Git(tempDir + config.projectName),
             cacheParam  = ' --reference ' + config.paths.getCache() + config.projectName;
 
-        this.services.log.startSection(sprintf('Checking out branch "%s" from "%s"...', stageConfig.branch, config.projectConfig.repo.url));
+        this.services.log.startSection(`Checking out branch "${stageConfig.branch}" from "${config.projectConfig.repo.url}"...`);
 
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir);
@@ -337,13 +330,16 @@ export default class DeployManager {
 
         //var command = 'clone -b ' + stageConfig.branch + cacheParam + ' ' + config.projectConfig.repo.url + ' ' + tempDir + config.projectName;
 
-        var command = sprintf('clone %s -b %s %s %s %s',
+        let command = [
+            'clone',
             config.projectConfig.repo.submodules ? '--recursive' : '',
+            '-b',
             stageConfig.branch,
             cacheParam,
             config.projectConfig.repo.url,
             tempDir + config.projectName
-        );
+        ].join(' ');
+
         this.services.log.debug(command);
         git.git(command, (err, result) => {
             if (err) {

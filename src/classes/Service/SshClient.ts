@@ -1,16 +1,11 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 
 import Q = require('q');
-import Shell = require('shelljs');
-import async = require('async');
 var VendorSshClient:any = require('node-sshclient');
-var color:any = require('cli-color');
-var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
 import AbstractService from './AbstractService';
 import SshResult from './SshResult';
 import LogService from "./LogService";
-
 
 export default class SshClient {
 
@@ -35,7 +30,7 @@ export default class SshClient {
         this.log.logCommand('SSH cmd: ' + command);
 
         client.command(command, (procResult:SshResult) => {
-            var resultString = sprintf('Response (code %s): "%s", err: "%s"', procResult.exitCode, procResult.stdout, procResult.stderr);
+            var resultString = `Response (code ${procResult.exitCode}): "${procResult.stdout}", err: "${procResult.stderr}"`;
             if (procResult.exitCode !== 0) {
                 deferred.reject(resultString);
             } else {
@@ -48,9 +43,9 @@ export default class SshClient {
     }
 
     upload(filename:string, remoteFilename:string) {
-        var deferred = Q.defer();
+        let deferred = Q.defer();
 
-        this.log.startSection(sprintf('Uploading "%s" to "%s"', filename, remoteFilename));
+        this.log.startSection(`Uploading "${filename}" to "${remoteFilename}"`);
         this.getScpClient().upload(filename, remoteFilename, (procResult:any) => {
             if (procResult.exitCode !== 0) {
                 deferred.reject(procResult.stderr);
@@ -65,7 +60,7 @@ export default class SshClient {
     private getSshClient():any {
 
         if (this.sshClient === null) {
-            this.log.logCommand(sprintf('Connecting SSH to %s@%s:%s ...', this.user, this.host, this.port));
+            this.log.logCommand(`Connecting SSH to ${this.user}@${this.host}:${this.port} ...`);
             this.sshClient = new VendorSshClient.SSH({
                 hostname: this.host,
                 user:     this.user,
@@ -76,9 +71,8 @@ export default class SshClient {
     }
 
     private getScpClient():any {
-
         if (this.scpClient === null) {
-            this.log.logCommand(sprintf('Connecting SCP to %s@%s:%s ...', this.user, this.host, this.port));
+            this.log.logCommand(`Connecting SCP to ${this.user}@${this.host}:${this.port} ...`);
             this.scpClient = new VendorSshClient.SCP({
                 hostname: this.host,
                 user:     this.user,

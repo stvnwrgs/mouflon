@@ -6,19 +6,16 @@ import Q = require('q');
 import Shell = require('shelljs');
 import async = require('async');
 
-var sprintf: sPrintF.sprintf = require('sprintf-js').sprintf;
-
 export default class ShellService extends AbstractService {
 
-    exec(command: string, global?: boolean): Q.Promise<string> {
-        var deferred = Q.defer<string>(),
-            result;
+    exec(command:string, global?:boolean):Q.Promise<string> {
+        let deferred = Q.defer<string>();
 
         if (!global) {
-            command = sprintf('cd %s%s; %s', this.services.config.paths.getTemp(), this.services.config.projectName, command);
+            command = `cd ${this.services.config.paths.getTemp() + this.services.config.projectName}%s; ${command}`;
         }
         this.services.log.debug('Executing: ' + command);
-        result = Shell.exec(command, {
+        let result = Shell.exec(command, {
             silent: !this.services.config.verbose
         });
         if (result.code === 0) {

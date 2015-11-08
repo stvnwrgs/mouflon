@@ -1,7 +1,7 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
 
-var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 import Q = require('q');
+import path = require('path');
 
 import AbstractTask from './../AbstractTask';
 import Task from './../Task';
@@ -16,19 +16,20 @@ export default class LinkedFileTask extends AbstractTask implements TaskWithSshC
         this.sshClient = sshClient;
     }
 
-    execute():Q.Promise<any> {
-        var currentDir = this.services.transfer.getCurrentDir(),
-            commands;
+    execute(): Q.Promise<any> {
+        let currentDir = this.services.transfer.getCurrentDir();
 
-        commands = [
+        let commands = [
             () =>  this.services.log.startSection('Linking files on remote...')
         ];
 
         this.getPrefs()['files'].forEach((file:string) => {
-            commands.push(() => this.sshClient.exec(sprintf('ln -fs ../../%1$s %2$s/%1$s', file, currentDir)));
+            let linkSource = path.join('..', '..', file),
+                linkTarget = path.join(currentDir, file);
+            commands.push(() => this.sshClient.exec(`ln -fs ${linkSource} ${linkTarget}`));
         });
 
         commands.push(() => this.services.log.closeSection('All files are linked.'));
-        return commands.reduce(Q.when, Q(null));
+        return <Q.Promise<any>> commands.reduce(Q.when, Q(null));
     }
 }

@@ -10,7 +10,6 @@ import DeployManager from './DeployManager';
 import LogService from "./Service/LogService";
 
 var color:any = require('cli-color');
-var sprintf:sPrintF.sprintf = require('sprintf-js').sprintf;
 
 export default class Mouflon {
 
@@ -36,7 +35,7 @@ export default class Mouflon {
                 "\n+----------------------------------------------------+") +
             "\n\n");
 
-        this.log.startSection(sprintf('Deploying "%s" to "%s"...', config.projectName, config.stageName));
+        this.log.startSection(`Deploying "${config.projectName}" to "${config.stageName}"...`);
         this.log.debug('Timestamp is ' + color.whiteBright.bold(this.timestamp));
         if (this.serviceContainer.config.verbose) {
             this.log.debug('Verbose mode is enabled');
@@ -47,13 +46,9 @@ export default class Mouflon {
 
         deployPromise.then(
             () => {
-                var end = (new Date()).getTime();
-                this.log.closeSection(sprintf(
-                    'It took %ss to deploy "%s" to "%s". :)' + "\n\n",
-                    (0.001 * (end - start)).toFixed(3),
-                    config.projectName,
-                    config.stageName
-                ));
+                var end = (new Date()).getTime(),
+                    duration = (0.001 * (end - start)).toFixed(3);
+                this.log.closeSection(`It took ${duration}s to deploy "${config.projectName}" to "${config.stageName}". :)` + "\n\n");
             },
             error => Utils.exitWithError(error)
         );
