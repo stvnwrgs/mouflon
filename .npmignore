@@ -1,5 +1,5 @@
 /.idea
-/classes
-/definitions
+/src/classes
+/typings
 Gruntfile.js
 .gitignore
