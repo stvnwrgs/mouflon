@@ -17,6 +17,7 @@ export default class LinkedFileTask extends AbstractTask implements TaskWithSshC
     }
 
     execute(): Q.Promise<any> {
+        let baseDir    = this.services.transfer.getBaseDir();
         let currentDir = this.services.transfer.getCurrentDir();
 
         let commands = [
@@ -24,7 +25,7 @@ export default class LinkedFileTask extends AbstractTask implements TaskWithSshC
         ];
 
         this.getPrefs()['files'].forEach((file:string) => {
-            let linkSource = path.join('..', '..', file),
+            let linkSource = path.join(baseDir, file),
                 linkTarget = path.join(currentDir, file);
             commands.push(() => this.sshClient.exec(`ln -fs ${linkSource} ${linkTarget}`));
         });
