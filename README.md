@@ -76,7 +76,8 @@ factory.setPaths({
  * 2015-11-06   v0.3.0       Now supports multiple hosts (and warns the deprecation of the old "host" server parameter)
  * 2015-11-06   v0.3.1       Bugfixes
  * 2015-11-08   v0.4.0-rc1   Switch from Grunt to tasky, switch to TypeScript 1.5 and ES2015 style code
- * 2015-11-08   v0.4.0-rc2   Fixed linkedFiles task
+ * 2015-11-09   v0.4.0-rc2   Fixed linkedFiles task
+ * 2015-11-10   v0.4.0-rc3   Fixed linkedDirs task
 
 ---
 
