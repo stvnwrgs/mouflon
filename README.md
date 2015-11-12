@@ -1,7 +1,4 @@
-# Important Note
-This project is not yet mature. Please come back in early 2015 if you intend to work with it.
-
-# Mouflon v0.3.1
+# Mouflon v0.4.0
 
 > js/yml tool that allows Capistrano-like automatic deployment with config upload, linked dirs, and past releases
 
@@ -78,6 +75,7 @@ factory.setPaths({
  * 2015-11-08   v0.4.0-rc1   Switch from Grunt to tasky, switch to TypeScript 1.5 and ES2015 style code
  * 2015-11-09   v0.4.0-rc2   Fixed linkedFiles task
  * 2015-11-10   v0.4.0-rc3   Fixed linkedDirs task
+ * 2015-11-10   v0.4.0       New release, no code changes to last RC
 
 ---
 
