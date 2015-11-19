@@ -106,7 +106,7 @@ export default class TransferService extends AbstractService {
         this.services.log.startSection('Making sure releases directory exists');
 
         let successPromise = [
-            () => sshClient.exec(`if [ ! -d "${releasesDir}" ]; then mkdir ${releasesDir}; fi`),
+            () => sshClient.exec(`if [ ! -d "${releasesDir}" ]; then mkdir -p ${releasesDir}; fi`),
             () => sshClient.exec(`if [ -d "${currentReleaseDir}" ]; then rm -rf ${currentReleaseDir}; fi`),
             () => sshClient.exec('mkdir ' + currentReleaseDir)
         ].reduce(Q.when, Q(null));

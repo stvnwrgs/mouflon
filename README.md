@@ -75,7 +75,8 @@ factory.setPaths({
  * 2015-11-08   v0.4.0-rc1   Switch from Grunt to tasky, switch to TypeScript 1.5 and ES2015 style code
  * 2015-11-09   v0.4.0-rc2   Fixed linkedFiles task
  * 2015-11-10   v0.4.0-rc3   Fixed linkedDirs task
- * 2015-11-10   v0.4.0       New release, no code changes to last RC
+ * 2015-11-13   v0.4.0       New release, no code changes to last RC
+ * 2015-11-18   v0.4.1       Now creates parent directories automatically when creating directories
 
 ---
 

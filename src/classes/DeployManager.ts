@@ -175,7 +175,7 @@ export default class DeployManager {
             tasks = [
                 () => {
                     this.services.log.startSection('Adding config files to package');
-                    return this.services.shell.exec('mkdir ' + configDir, true);
+                    return this.services.shell.exec('mkdir -p ' + configDir, true);
                 },
                 () => {
                     return this.services.shell.exec('cp -r ' + config.pathConfig.getConfig() + config.projectName + '/' + config.stageName + '/* ' + configDir, true).then(()=> {

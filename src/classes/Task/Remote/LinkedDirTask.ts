@@ -30,7 +30,7 @@ export default class LinkedDirTask extends AbstractTask implements TaskWithSshCl
             let dir        = path.join(currentDir, directory),
                 appDir     = path.join(baseDir, directory);
 
-            commands.push(() => this.sshClient.exec(`if [ ! -d "${appDir}" ]; then mkdir -m=0777 ${appDir}; fi`));
+            commands.push(() => this.sshClient.exec(`if [ ! -d "${appDir}" ]; then mkdir -p -m=0777 ${appDir}; fi`));
             commands.push(() => this.sshClient.exec(`ln -fs ${appDir} ${dir}`));
             commands.push(() => this.sshClient.exec(`chmod 0777 ${dir}`));
         });
