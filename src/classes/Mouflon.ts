@@ -40,18 +40,22 @@ export default class Mouflon {
 
         this.log.startSection(`Deploying "${config.projectName}" to "${config.stageName}"...`);
         this.log.debug('Timestamp is ' + color.whiteBright.bold(this.timestamp));
-        if (this.serviceContainer.config.verbose) {
+        if (config.verbose) {
             this.log.debug('Verbose mode is enabled');
         }
-        this.log.debug('Working pathConfig: ' + this.serviceContainer.config.pathConfig.getReadable());
+        this.log.debug('Working pathConfig: ' + config.pathConfig.getReadable());
 
         return this.deployManager.deploy().then(() => {
+            let end = new Date().getTime(),
+                  duration = (0.001 * (end - start)).toFixed(3);
+
             let result: IDeployResult = {
                 project: config.projectName,
                 stage: config.stageName,
-                projectConfig: this.serviceContainer.config.projectConfig,
-                start: new Date(),
-                end: new Date(),
+                projectConfig: config.projectConfig,
+                globalConfig: config.globalConfig,
+                start: start,
+                end: end,
             };
             return result;
         });
