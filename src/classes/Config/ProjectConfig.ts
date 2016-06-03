@@ -10,6 +10,7 @@ interface ProjectConfig {
     localTasks: TaskDefinition[];
     remoteTasks: TaskDefinition[];
     stages: {[stageName:string]:StageConfig};
+    custom: any;
 }
 
 export default ProjectConfig;
