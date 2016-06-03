@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/index.d.ts" />
 
 import AbstractService from './AbstractService';
 import DeployConfig from './DeployConfigService';
@@ -17,7 +17,8 @@ export default class ShellService extends AbstractService {
         this.services.log.debug('Executing: ' + command);
         let result = Shell.exec(command, {
             silent: !this.services.config.verbose
-        });
+        }) as Shell.ExecOutputReturnValue;
+
         if (result.code === 0) {
             deferred.resolve(result.output);
         } else {
