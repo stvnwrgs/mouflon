@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": true,
+    "declaration": true,
+    "rootDir": "./src",
+    "sourceRoot": "./src",
+    "outDir": "./dist"
+  },
+  "files": [
+    "./typings/index.d.ts",
+    "./src/classes/DeployManager.ts",
+    "./src/classes/Mouflon.ts",
+    "./src/classes/MouflonFactory.ts",
+    "./src/classes/Utils.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
