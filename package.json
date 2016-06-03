@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "typings install && tsc",
     "watch": "typings install && tsc --watch",
-    "prepublish": "tasky build"
+    "prepublish": "typings install && tsc"
   },
   "repository":      {
     "type": "git",
