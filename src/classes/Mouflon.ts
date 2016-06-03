@@ -24,8 +24,8 @@ export default class Mouflon {
         this.log = serviceContainer.log;
     }
 
-    deploy(callback, err):Q.IPromise<IDeployResult> {
-        let start           = (new Date()).getTime(),
+    deploy():Q.IPromise<IDeployResult> {
+        let start           = new Date().getTime(),
             deployPromise = Q.defer<IDeployResult>(),
             deployManagerPromise:Q.IPromise<boolean>,
             config          = this.serviceContainer.config,
@@ -46,7 +46,6 @@ export default class Mouflon {
         this.log.debug('Working pathConfig: ' + this.serviceContainer.config.pathConfig.getReadable());
 
         return this.deployManager.deploy().then(() => {
-            console.log("deploy done");
             let result: IDeployResult = {
                 project: config.projectName,
                 stage: config.stageName,
@@ -54,7 +53,7 @@ export default class Mouflon {
                 start: new Date(),
                 end: new Date(),
             };
-            return callback(result, null);
+            return result;
         });
     }
 }
