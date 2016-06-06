@@ -77,7 +77,7 @@ factory.setPaths({
  * 2015-11-10   v0.4.0-rc3   Fixed linkedDirs task
  * 2015-11-13   v0.4.0       New release, no code changes to last RC
  * 2015-11-18   v0.4.1       Now creates parent directories automatically when creating directories
-
+ * 2016-06-06   v1.0.0       deploy() Now resolves with a promise. Added custom data to config
 ---
 
 Maintained by [Alexander Thiel](http://www.alexthiel.de)

@@ -1,6 +1,6 @@
 {
   "name":            "mouflon",
-  "version":         "0.4.1",
+  "version":         "1.0.0",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
   "author":          "SNM Style Net Media GmbH",
   "license":         "proprietary",
