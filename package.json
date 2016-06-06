@@ -1,12 +1,15 @@
 {
   "name":            "mouflon",
-  "version":         "0.4.1",
+  "version":         "1.0.0",
   "description":     "Capistrano-like deployments using pure javascript/yml syntax (with config upload, linked dirs, and past releases)",
   "author":          "SNM Style Net Media GmbH",
   "license":         "proprietary",
   "main":            "./dist/classes/MouflonFactory",
   "scripts":         {
-    "prepublish": "tasky build"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "typings install && tsc",
+    "watch": "typings install && tsc --watch",
+    "prepublish": "typings install && tsc"
   },
   "repository":      {
     "type": "git",
@@ -19,12 +22,16 @@
     "dateformat":      "1.0.x",
     "exec":            "0.1.x",
     "git":             "0.1.x",
-    "js-yaml":         "3.2.x",
+    "js-yaml":         "3.5.x",
     "merge-recursive": "0.0.x",
     "minimist":        "1.1.x",
     "node-sshclient":  "0.1.x",
-    "q":               "1.0.x",
+    "q":               "1.4.x",
     "rimraf":          "2.2.x",
     "shelljs":         "0.3.x"
+  },
+  "devDependencies": {
+    "typescript": "^1.7.5",
+    "typings": "^1.0.4"
   }
 }
