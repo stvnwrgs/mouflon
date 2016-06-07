@@ -1,13 +1,15 @@
 /// <reference path="../../typings/index.d.ts" />
 
 import fs = require('fs');
+import Q = require('q');
 
 import GlobalConfig from './Config/GlobalConfig';
 import PathConfig from './Config/PathConfig';
 import ServiceContainer from './Service/ServiceContainer';
 import Utils from './Utils';
 import DeployManager from './DeployManager';
-import LogService from "./Service/LogService";
+import LogService from './Service/LogService';
+import IDeployResult from './Model/IDeployResult' ;
 
 var color:any = require('cli-color');
 
@@ -22,9 +24,10 @@ export default class Mouflon {
         this.log = serviceContainer.log;
     }
 
-    deploy() {
-        let start           = (new Date()).getTime(),
-            deployPromise:Q.IPromise<boolean>,
+    deploy():Q.IPromise<IDeployResult> {
+        let start           = new Date().getTime(),
+            deployPromise = Q.defer<IDeployResult>(),
+            deployManagerPromise:Q.IPromise<boolean>,
             config          = this.serviceContainer.config,
             packageData:any = JSON.parse('' + fs.readFileSync(__dirname + '/../../package.json'));
 
@@ -37,21 +40,24 @@ export default class Mouflon {
 
         this.log.startSection(`Deploying "${config.projectName}" to "${config.stageName}"...`);
         this.log.debug('Timestamp is ' + color.whiteBright.bold(this.timestamp));
-        if (this.serviceContainer.config.verbose) {
+        if (config.verbose) {
             this.log.debug('Verbose mode is enabled');
         }
-        this.log.debug('Working pathConfig: ' + this.serviceContainer.config.pathConfig.getReadable());
+        this.log.debug('Working pathConfig: ' + config.pathConfig.getReadable());
 
-        deployPromise = this.deployManager.deploy();
+        return this.deployManager.deploy().then(() => {
+            let end = new Date().getTime(),
+                  duration = (0.001 * (end - start)).toFixed(3);
 
-        deployPromise.then(
-            () => {
-                let end = (new Date()).getTime(),
-                    duration = (0.001 * (end - start)).toFixed(3);
-                this.log.closeSection(`It took ${duration}s to deploy "${config.projectName}" to "${config.stageName}". :)` + "\n\n");
-            },
-            error => Utils.exitWithError(error)
-        );
+            let result: IDeployResult = {
+                project: config.projectName,
+                stage: config.stageName,
+                projectConfig: config.projectConfig,
+                globalConfig: config.globalConfig,
+                start: start,
+                end: end,
+            };
+            return result;
+        });
     }
-
 }

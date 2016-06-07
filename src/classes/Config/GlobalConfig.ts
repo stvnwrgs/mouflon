@@ -6,6 +6,7 @@ interface GlobalConfig {
     releases: {
         keep: number;
     };
+    custom: any;
 }
 
 export default GlobalConfig;
