@@ -26,8 +26,6 @@ export default class Mouflon {
 
     deploy():Q.IPromise<IDeployResult> {
         let start           = new Date().getTime(),
-            deployPromise = Q.defer<IDeployResult>(),
-            deployManagerPromise:Q.IPromise<boolean>,
             config          = this.serviceContainer.config,
             packageData:any = JSON.parse('' + fs.readFileSync(__dirname + '/../../package.json'));
 
@@ -46,8 +44,7 @@ export default class Mouflon {
         this.log.debug('Working pathConfig: ' + config.pathConfig.getReadable());
 
         return this.deployManager.deploy().then(() => {
-            let end = new Date().getTime(),
-                  duration = (0.001 * (end - start)).toFixed(3);
+            let end = new Date().getTime();
 
             let result: IDeployResult = {
                 project: config.projectName,
