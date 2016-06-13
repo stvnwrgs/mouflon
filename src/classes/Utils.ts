@@ -1,5 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
-
 var color:any = require('cli-color');
 
 export default class Utils {

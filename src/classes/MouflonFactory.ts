@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 import minimist = require('minimist');
 var dateFormat:any = require('dateformat');
 

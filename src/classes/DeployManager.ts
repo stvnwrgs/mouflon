@@ -1,5 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
-
 import Git = require('git');
 import fs = require('fs');
 import path = require('path');
